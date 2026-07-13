@@ -7,6 +7,34 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 
+// List of country codes for dropdown
+const COUNTRY_CODES = [
+  { code: "+239", label: "🇸🇹 +239 (São Tomé e Príncipe)" },
+  { code: "+351", label: "🇵🇹 +351 (Portugal)" },
+  { code: "+55", label: "🇧🇷 +55 (Brasil)" },
+  { code: "+244", label: "🇦🇴 +244 (Angola)" },
+  { code: "+238", label: "🇨🇻 +238 (Cabo Verde)" },
+  { code: "+245", label: "🇬🇼 +245 (Guiné-Bissau)" },
+  { code: "+258", label: "🇲🇿 +258 (Moçambique)" },
+  { code: "+1", label: "🇺🇸 +1 (EUA/Canadá)" },
+  { code: "+44", label: "🇬🇧 +44 (Reino Unido)" },
+  { code: "+33", label: "🇫🇷 +33 (França)" },
+  { code: "+34", label: "🇪🇸 +34 (Espanha)" },
+  { code: "+49", label: "🇩🇪 +49 (Alemanha)" },
+  { code: "+39", label: "🇮🇹 +39 (Itália)" },
+  { code: "+31", label: "🇳🇱 +31 (Países Baixos)" },
+  { code: "+32", label: "🇧🇪 +32 (Bélgica)" },
+  { code: "+41", label: "🇨🇭 +41 (Suíça)" },
+  { code: "+86", label: "🇨🇳 +86 (China)" },
+  { code: "+81", label: "🇯🇵 +81 (Japão)" },
+  { code: "+91", label: "🇮🇳 +91 (Índia)" },
+  { code: "+27", label: "🇿🇦 +27 (África do Sul)" },
+  { code: "+234", label: "🇳🇬 +234 (Nigéria)" },
+  { code: "+254", label: "🇰🇪 +254 (Quénia)" },
+  { code: "+256", label: "🇺🇬 +256 (Uganda)" },
+  { code: "+250", label: "🇷🇼 +250 (Ruanda)" },
+];
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,6 +46,7 @@ function LoginForm() {
     created_at: string;
   } | null>(null);
   const [formData, setFormData] = useState({
+    country_code: "+239",
     mobile_number: "",
     pin: "",
   });
@@ -52,9 +81,18 @@ function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Validate mobile number
+    // Validate mobile number with country code
+    const fullNumber = formData.country_code + formData.mobile_number;
+
     if (!formData.mobile_number.trim()) {
       toast.error("Por favor, insira seu número de telefone");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate minimum phone number length (without country code)
+    if (formData.mobile_number.trim().length < 6) {
+      toast.error("Por favor, insira um número de telefone válido");
       setIsLoading(false);
       return;
     }
@@ -72,13 +110,12 @@ function LoginForm() {
 
       // Pass pending_ad_token if exists
       await login(
-        formData.mobile_number.trim(),
+        fullNumber, // Send full number with country code
         formData.pin,
         pendingAdToken || undefined,
       );
 
       // Clear pending ad data after successful login
-      // (The auth context will handle this if transfer was successful)
       if (pendingAdToken) {
         localStorage.removeItem("pending_ad_token");
         localStorage.removeItem("pending_ad_data");
@@ -169,37 +206,62 @@ function LoginForm() {
 
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Mobile Number */}
+          {/* Mobile Number with Country Code */}
           <div>
             <label
               htmlFor="mobile_number"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Número de Telefone
+              Número de Telefone <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                📱
-              </span>
-              <input
-                id="mobile_number"
-                type="tel"
-                required
-                autoComplete="tel"
-                placeholder="Ex: 987654321"
-                value={formData.mobile_number}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    mobile_number: e.target.value.replace(/\D/g, ""),
-                  })
-                }
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
-              />
+            <div className="flex gap-2">
+              {/* Country Code Dropdown */}
+              <div className="relative flex-shrink-0">
+                <select
+                  id="country_code"
+                  value={formData.country_code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, country_code: e.target.value })
+                  }
+                  className="h-[52px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors bg-white appearance-none pr-8 min-w-[120px]"
+                >
+                  {COUNTRY_CODES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  ▼
+                </span>
+              </div>
+
+              {/* Phone Number Input */}
+              <div className="relative flex-1">
+                <input
+                  id="mobile_number"
+                  type="tel"
+                  required
+                  autoComplete="tel-national"
+                  placeholder="987654321"
+                  value={formData.mobile_number}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      mobile_number: e.target.value.replace(/\D/g, ""),
+                    })
+                  }
+                  className="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors h-[52px]"
+                />
+              </div>
             </div>
             <p className="mt-1 text-xs text-gray-400">
-              Insira o número sem o código do país (ex: 987654321)
+              Selecione o código do país e insira o número sem zeros à frente
             </p>
+            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+              <span>💡</span>
+              <span>Exemplo: +239 987654321</span>
+            </div>
           </div>
 
           {/* PIN */}
@@ -209,7 +271,7 @@ function LoginForm() {
                 htmlFor="pin"
                 className="block text-sm font-medium text-gray-700"
               >
-                PIN (4 dígitos)
+                PIN (4 dígitos) <span className="text-red-500">*</span>
               </label>
               <button
                 type="button"
@@ -237,7 +299,7 @@ function LoginForm() {
                     pin: e.target.value.replace(/\D/g, "").slice(0, 4),
                   })
                 }
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors tracking-[0.5em] text-center text-xl"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors tracking-[0.5em] text-center text-xl h-[52px]"
                 inputMode="numeric"
               />
             </div>
@@ -248,17 +310,63 @@ function LoginForm() {
                   cadastro.
                 </p>
                 <p className="mt-1">
-                  Se você não lembra do seu PIN, entre em contato com o suporte.
+                  Se você não recebeu o PIN, verifique seu número de telefone ou
+                  entre em contato com o suporte.
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Resend PIN Link */}
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => {
+                const fullNumber =
+                  formData.country_code + formData.mobile_number;
+                if (!formData.mobile_number.trim()) {
+                  toast.error(
+                    "Por favor, insira seu número de telefone para reenviar o PIN",
+                  );
+                  return;
+                }
+                if (formData.mobile_number.trim().length < 6) {
+                  toast.error("Por favor, insira um número de telefone válido");
+                  return;
+                }
+                // Call resend PIN API
+                fetch("/api/auth/resend-pin/", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ mobile_number: fullNumber }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.message) {
+                      toast.success(
+                        "PIN reenviado por SMS! Verifique seu telefone.",
+                      );
+                    } else {
+                      toast.error(data.error || "Erro ao reenviar PIN");
+                    }
+                  })
+                  .catch(() => {
+                    toast.error("Erro ao reenviar PIN. Tente novamente.");
+                  });
+              }}
+              className="text-xs text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              Não recebeu o PIN? Reenviar
+            </button>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading || authLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 h-[52px]"
           >
             {isLoading || authLoading ? (
               <>
