@@ -71,7 +71,7 @@ export default function Navigation() {
               </>
             ) : (
               <Link
-                href="/login"
+                href="/auth/login"
                 className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 {hasPendingAd ? "Publicar Rascunho" : "Entrar"}
@@ -153,7 +153,7 @@ export default function Navigation() {
               </>
             ) : (
               <Link
-                href="/login"
+                href="/auth/login"
                 className="block bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center"
                 onClick={() => setMobileMenuOpen(false)}
               >
