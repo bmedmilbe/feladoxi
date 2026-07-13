@@ -128,16 +128,15 @@ export async function login(payload: {
 export async function register(
   mobile_number: string,
   district: string,
-  pin: string,
 ): Promise<{
   message: string;
   mobile_number: string;
   district: string;
+  pin_sent: boolean;
 }> {
   const response = await api.post("/auth/register/", {
     mobile_number,
     district,
-    pin,
   });
   return response.data;
 }
