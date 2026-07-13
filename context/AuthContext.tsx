@@ -155,14 +155,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (
-    mobile_number: string,
-    district: string,
-    pin: string,
-  ) => {
+  // context/AuthContext.tsx (updated register function)
+
+  const register = async (mobile_number: string, district: string) => {
     setIsLoading(true);
     try {
-      const response = await apiRegister(mobile_number, district, pin);
+      const response = await apiRegister(mobile_number, district);
 
       // Check if there's a pending ad to transfer after registration
       const pendingToken = localStorage.getItem("pending_ad_token");
@@ -171,7 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       toast.success("✅ Cadastro realizado com sucesso!");
-      router.push("/auth/login");
+
+      // Return success - don't redirect, let the page handle it
+      return response;
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage =
