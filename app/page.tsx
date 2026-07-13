@@ -148,7 +148,7 @@ export default function HomePage() {
         </div>
 
         {/* Ads Grid */}
-        {ads && ads.length > 0 ? (
+        {ads?.results && ads?.results?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {/* Featured Ads First */}
             {featuredAds.map((ad) => (
