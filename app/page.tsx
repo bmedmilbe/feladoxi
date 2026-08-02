@@ -88,7 +88,8 @@ export default function HomePage() {
                   Você tem um rascunho de anúncio aguardando publicação
                 </p>
                 <p className="text-xs text-yellow-600">
-                  "{pendingAdData.product_name}" - Faça login para publicar
+                  &quot;{pendingAdData.product_name}&quot; - Faça login para
+                  publicar
                 </p>
               </div>
             </div>
