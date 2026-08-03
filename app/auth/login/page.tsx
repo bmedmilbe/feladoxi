@@ -73,7 +73,7 @@ function LoginForm() {
     // Check URL param for pending ad indicator
     const pending = searchParams.get("pending_ad");
     if (pending === "true" && !pendingAdToken) {
-      toast.info("Você tem um anúncio rascunho. Faça login para publicá-lo!");
+      toast.custom("Você tem um anúncio rascunho. Faça login para publicá-lo!");
     }
   }, [searchParams]);
 

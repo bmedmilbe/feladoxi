@@ -11,7 +11,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
 import { HeroSection } from "@/components/HeroSection";
 import { fetchAds, fetchCategories } from "@/lib/api";
-import type { Ad, Category, FilterState } from "@/types";
+import type { Ad, ApiResponse, Category, FilterState } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 
@@ -37,7 +37,7 @@ export default function HomePage() {
   }, [filters, router]);
 
   // Fetch categories
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories } = useQuery<ApiResponse<Category>>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
   });
@@ -48,7 +48,7 @@ export default function HomePage() {
     isLoading,
     isError,
     refetch,
-  } = useQuery<Ad[]>({
+  } = useQuery<ApiResponse<Ad>>({
     queryKey: ["ads", filters],
     queryFn: () => fetchAds(filters),
   });

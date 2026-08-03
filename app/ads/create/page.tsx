@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { fetchCategories, createTemporaryAd } from "@/lib/api";
-import { Category, DistrictLabels } from "@/types";
+import { ApiResponse, Category, DistrictLabels } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface FormData {
@@ -33,7 +33,7 @@ export default function CreateAdPage() {
 
   // Fetch categories
   const { data: categories, isLoading: categoriesLoading } = useQuery<
-    Category[]
+    ApiResponse<Category>
   >({
     queryKey: ["categories"],
     queryFn: fetchCategories,

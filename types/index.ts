@@ -16,6 +16,13 @@ export interface CustomerProfile {
   updated_at: string;
 }
 
+export interface ApiResponse<T> {
+  count: number;
+  next: null | string;
+  previous: null | string;
+  results: T[];
+}
+
 export interface Category {
   id: number;
   name: string;

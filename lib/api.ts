@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Ad, Category, FilterState } from "@/types";
+import type { Ad, ApiResponse, Category, FilterState } from "@/types";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
@@ -36,20 +36,22 @@ api.interceptors.response.use(
 );
 
 // Categories
-export async function fetchCategories(): Promise<Category[]> {
-  const response = await api.get<Category[]>("/marketplace/categories/");
+export async function fetchCategories(): Promise<ApiResponse<Category>> {
+  const response = await api.get<ApiResponse<Category>>(
+    "/marketplace/categories/",
+  );
   return response.data;
 }
 
 // Ads
-export async function fetchAds(filters: FilterState): Promise<Ad[]> {
+export async function fetchAds(filters: FilterState): Promise<ApiResponse<Ad>> {
   const params = new URLSearchParams();
   if (filters.search) params.set("search", filters.search);
   if (filters.category) params.set("category", filters.category);
   if (filters.district) params.set("district", filters.district);
   if (filters.condition) params.set("condition", filters.condition);
 
-  const response = await api.get<Ad[]>(
+  const response = await api.get<ApiResponse<Ad>>(
     `/marketplace/ads/?${params.toString()}`,
   );
   return response.data;

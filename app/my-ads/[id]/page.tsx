@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAd, fetchCategories, updateAd } from "@/lib/api";
-import { Category } from "@/types";
+import { ApiResponse, Category } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -36,7 +36,7 @@ export default function EditAdPage() {
   }, [isAuthenticated, authLoading, router]);
 
   // Fetch categories
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories } = useQuery<ApiResponse<Category>>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     enabled: isAuthenticated,

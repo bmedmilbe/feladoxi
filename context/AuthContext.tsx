@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         id: parseInt(userId),
         mobile_number: mobileNumber,
-        district: district,
+        district: district!,
       });
     }
 
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return; // Exit early to avoid double redirect
       } else if (pending_ad_token) {
         // If we had a token but no transfer occurred
-        toast.info(
+        toast.custom(
           '📝 Seu rascunho foi salvo. Você pode publicá-lo em "Meus Anúncios"',
         );
       }
@@ -171,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.success("✅ Cadastro realizado com sucesso!");
 
       // Return success - don't redirect, let the page handle it
-      return response;
+      // return response;-
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage =

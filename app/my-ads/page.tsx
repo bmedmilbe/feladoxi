@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { fetchAds, deleteAd, fetchCategories } from "@/lib/api";
-import { Ad, Category } from "@/types";
+import { Ad, ApiResponse, Category } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
 import toast from "react-hot-toast";
@@ -50,7 +50,7 @@ export default function MyAdsPage() {
   }, [isAuthenticated, authLoading, router]);
 
   // Fetch categories for filter
-  const { data: categories } = useQuery<Category[]>({
+  const { data: categories } = useQuery<ApiResponse<Category>>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     enabled: isAuthenticated,
@@ -62,7 +62,7 @@ export default function MyAdsPage() {
     isLoading,
     isError,
     refetch,
-  } = useQuery<Ad[]>({
+  } = useQuery<ApiResponse<Ad>>({
     queryKey: ["my-ads"],
     queryFn: () => fetchAds({ search: "", category: "", district: "" }),
     enabled: isAuthenticated,
