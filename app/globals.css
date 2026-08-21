@@ -4,21 +4,68 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --market-cream: #f6fafb;
+    --market-ink: #082f4f;
+    --market-green: #08a6a6;
+    --market-coral: #ffd23f;
+    --market-font: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
   body {
-    @apply antialiased text-gray-900;
+    background:
+      linear-gradient(180deg, #f6fafb 0%, #ffffff 48%, #eef8fa 100%);
+    color: var(--market-ink);
+    font-family: var(--market-font);
+    font-feature-settings: "kern" 1, "liga" 1;
+    overflow-x: hidden;
+    @apply antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+
+  ::selection {
+    background: rgba(223, 74, 47, 0.2);
+    color: var(--market-ink);
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors;
+    @apply rounded-md bg-[#08a6a6] px-4 py-2 text-white transition-colors hover:bg-[#078b8d];
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors;
+    @apply rounded-md border border-[#c8dde5] bg-white px-4 py-2 text-[#082f4f] transition-colors hover:bg-[#e4f7f7];
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden;
+    @apply overflow-hidden rounded-lg border border-[#dceaf0] bg-white shadow-md transition-shadow hover:shadow-lg;
+  }
+
+  .market-kicker {
+    @apply text-xs font-black uppercase tracking-[0.18em] text-[#078b8d];
+  }
+
+  .market-label {
+    @apply block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d];
+  }
+
+  .market-field {
+    @apply h-12 w-full rounded-md border border-[#c8dde5] bg-white px-4 text-sm font-medium text-[#183e58] outline-none transition placeholder:text-[#8297a5] focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10;
+  }
+
+  .market-panel {
+    @apply rounded-lg border border-[#dceaf0] bg-white shadow-[0_14px_34px_rgba(7,52,79,0.08)];
   }
 }

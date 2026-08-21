@@ -102,10 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // If we have a pending ad token, include it in the request
       if (pending_ad_token) {
         payload.pending_ad_token = pending_ad_token;
-        console.log(
-          "📤 Including pending_ad_token in login request:",
-          pending_ad_token,
-        );
       }
 
       const response = await apiLogin(payload);
@@ -129,25 +125,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("pending_ad_data");
         setPendingAdData(null);
 
-        toast.success("✅ Seu anúncio rascunho foi publicado com sucesso!");
+        toast.success("O anúncio guardado foi publicado com sucesso");
 
         // Redirect to the newly created ad
         router.push(`/ads/${response.transferred_ad_id}`);
         return; // Exit early to avoid double redirect
       } else if (pending_ad_token) {
         // If we had a token but no transfer occurred
-        toast.custom(
-          '📝 Seu rascunho foi salvo. Você pode publicá-lo em "Meus Anúncios"',
-        );
+        toast("O rascunho ficou guardado em Meus anúncios");
       }
 
-      toast.success("✅ Login realizado com sucesso!");
+      toast.success("Sessão iniciada com sucesso");
       router.push("/");
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage =
         error.response?.data?.error ||
-        "Falha no login. Verifique seu número e PIN.";
+        "Não foi possível entrar. Verifique o número e o PIN.";
       toast.error(errorMessage);
       throw error;
     } finally {
@@ -155,27 +149,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // context/AuthContext.tsx (updated register function)
-
   const register = async (mobile_number: string, district: string) => {
     setIsLoading(true);
     try {
-      const response = await apiRegister(mobile_number, district);
+      await apiRegister(mobile_number, district);
 
       // Check if there's a pending ad to transfer after registration
       const pendingToken = localStorage.getItem("pending_ad_token");
       if (pendingToken) {
-        toast.success("📝 Seu rascunho será publicado após o primeiro login!");
+        toast.success("O rascunho será publicado depois do primeiro acesso");
       }
 
-      toast.success("✅ Cadastro realizado com sucesso!");
-
-      // Return success - don't redirect, let the page handle it
-      // return response;-
+      toast.success("Conta criada com sucesso");
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage =
-        error.response?.data?.error || "Falha no cadastro. Tente novamente.";
+        error.response?.data?.error || "Não foi possível criar a conta. Tente novamente.";
       toast.error(errorMessage);
       throw error;
     } finally {

@@ -9,6 +9,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Trebuchet MS"', '"Avenir Next"', '"Segoe UI"', "sans-serif"],
+        serif: ['"Trebuchet MS"', '"Avenir Next"', '"Segoe UI"', "sans-serif"],
+      },
+      fontWeight: {
+        black: "800",
+      },
       colors: {
         primary: {
           50: "#eff6ff",

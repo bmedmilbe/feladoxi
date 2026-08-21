@@ -12,12 +12,7 @@ export default function AdDetailPage() {
   const params = useParams();
   const id = parseInt(params.id as string);
 
-  const {
-    data: ad,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const { data: ad, isLoading, isError } = useQuery({
     queryKey: ["ad", id],
     queryFn: () => fetchAd(id),
     enabled: !isNaN(id),
@@ -26,9 +21,9 @@ export default function AdDetailPage() {
   if (isNaN(id)) {
     return (
       <EmptyState
-        title="Invalid Ad ID"
-        description="The ad ID provided is invalid"
-        actionText="Go Home"
+        title="Anúncio inválido"
+        description="O identificador deste anúncio não é válido."
+        actionText="Voltar ao mercado"
         actionLink="/"
       />
     );
@@ -36,7 +31,7 @@ export default function AdDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[#f4fbf6]">
         <LoadingSpinner />
       </div>
     );
@@ -45,17 +40,13 @@ export default function AdDetailPage() {
   if (isError || !ad) {
     return (
       <EmptyState
-        title="Ad Not Found"
-        description="The listing you're looking for doesn't exist or has been removed"
-        actionText="Browse Listings"
+        title="Anúncio não encontrado"
+        description="Este anúncio não existe ou já foi removido."
+        actionText="Ver outros produtos"
         actionLink="/"
       />
     );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <AdDetail ad={ad} />
-    </div>
-  );
+  return <AdDetail ad={ad} />;
 }

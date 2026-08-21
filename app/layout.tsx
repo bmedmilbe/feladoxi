@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
-import Providers from "./providers"; // Importe o novo componente
-
-const inter = Inter({ subsets: ["latin"] });
+import { Footer } from "@/components/Footer";
+import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "STP Market - Compra e Venda em São Tomé e Príncipe",
+  title: "Mercado STP - Compra e venda em São Tomé e Príncipe",
   description:
-    "Encontre as melhores ofertas em veículos, imóveis, eletrônicos e muito mais em São Tomé e Príncipe",
+    "Encontre produtos locais, eletrónica, moda, casa e muito mais em São Tomé e Príncipe",
 };
 
 export default function RootLayout({
@@ -18,11 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="pt-ST">
+      <body className="bg-[#f6fafb] pb-[76px] text-[#082f4f] lg:pb-0">
         <Providers>
           <Navigation />
-          <main className="min-h-screen bg-gray-50">{children}</main>
+          <main className="min-h-[60vh] bg-[#f6fafb]">{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

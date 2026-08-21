@@ -1,5 +1,6 @@
-// components/SearchFilters.tsx
 "use client";
+
+import { useState } from "react";
 
 import {
   DistrictLabels,
@@ -7,6 +8,10 @@ import {
   Category,
   ConditionLabels,
 } from "@/types";
+import {
+  SearchAutocomplete,
+  type SearchSuggestion,
+} from "@/components/SearchAutocomplete";
 
 interface SearchFiltersProps {
   filters: FilterState;
@@ -14,11 +19,42 @@ interface SearchFiltersProps {
   categories: Category[];
 }
 
+function CloseIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="m6 6 12 12M18 6 6 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6h16M7 12h10m-7 6h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function SearchFilters({
   filters,
   onFilterChange,
   categories,
 }: SearchFiltersProps) {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const handleChange = (key: keyof FilterState, value: string) => {
     onFilterChange({ ...filters, [key]: value });
   };
@@ -29,71 +65,107 @@ export function SearchFilters({
       category: "",
       district: "",
       condition: "",
+      featured: "",
     });
   };
 
+  const selectSuggestion = (suggestion: SearchSuggestion) => {
+    if (suggestion.categorySlug) {
+      onFilterChange({
+        ...filters,
+        search: "",
+        category: suggestion.categorySlug,
+      });
+      return;
+    }
+
+    handleChange("search", suggestion.label);
+  };
+
   const hasActiveFilters =
-    filters.search || filters.category || filters.district || filters.condition;
+    filters.search ||
+    filters.category ||
+    filters.district ||
+    filters.condition ||
+    filters.featured;
+
+  const controlClass =
+    "h-12 w-full rounded-md border border-[#c8dde5] bg-white px-4 text-sm font-medium text-[#183e58] outline-none transition focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10";
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Search Input */}
+    <div className="rounded-lg border border-[#dceaf0] bg-white p-2 shadow-[0_10px_24px_rgba(7,52,79,0.05)] md:p-4 md:shadow-[0_14px_34px_rgba(7,52,79,0.07)]">
+      <button
+        type="button"
+        onClick={() => setMobileFiltersOpen((open) => !open)}
+        className="flex h-11 w-full items-center justify-between rounded-md px-3 text-sm font-black text-[#082f4f] md:hidden"
+        aria-expanded={mobileFiltersOpen}
+        aria-controls="product-filter-controls"
+      >
+        <span className="inline-flex items-center gap-2"><FilterIcon /> Filtrar produtos</span>
+        <span className="inline-flex items-center gap-2">
+          {hasActiveFilters && <span className="rounded-full bg-[#08a6a6] px-2 py-0.5 text-[10px] text-white">Ativos</span>}
+          <ChevronIcon open={mobileFiltersOpen} />
+        </span>
+      </button>
+
+      <div id="product-filter-controls" className={`${mobileFiltersOpen ? "grid" : "hidden"} mt-3 grid-cols-1 gap-4 md:mt-0 md:grid md:grid-cols-2 xl:grid-cols-4`}>
         <div>
-          <label
-            htmlFor="search"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Pesquisar Produtos
+          <label htmlFor="filter-search" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
+            Pesquisa
           </label>
-          <input
-            id="search"
-            type="text"
-            placeholder="Pesquisar por nome..."
-            value={filters.search}
-            onChange={(e) => handleChange("search", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-          />
+          <div className="relative">
+            <SearchAutocomplete
+              id="filter-search"
+              placeholder="Pesquisar por nome..."
+              value={filters.search}
+              onChange={(value) => handleChange("search", value)}
+              onSuggestionSelect={selectSuggestion}
+              inputClassName={`${controlClass} pl-11 pr-10`}
+              iconClassName="left-4"
+            />
+            {filters.search && (
+              <button
+                type="button"
+                onClick={() => handleChange("search", "")}
+                className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-[#657d8d] transition hover:bg-[#e4f7f7] hover:text-[#078b8d]"
+                aria-label="Limpar pesquisa"
+              >
+                <CloseIcon />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Category Selector */}
         <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="category" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
             Categoria
           </label>
           <select
             id="category"
             value={filters.category}
-            onChange={(e) => handleChange("category", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            onChange={(event) => handleChange("category", event.target.value)}
+            className={controlClass}
           >
-            <option value="">Todas as Categorias</option>
+            <option value="">Todas as categorias</option>
             {categories.map((category) => (
               <option key={category.id} value={category.slug}>
-                {category.icon || "📁"} {category.name}
+                {category.name}
               </option>
             ))}
           </select>
         </div>
 
-        {/* District Selector */}
         <div>
-          <label
-            htmlFor="district"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="district" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
             Distrito
           </label>
           <select
             id="district"
             value={filters.district}
-            onChange={(e) => handleChange("district", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            onChange={(event) => handleChange("district", event.target.value)}
+            className={controlClass}
           >
-            <option value="">Todos os Distritos</option>
+            <option value="">Todos os distritos</option>
             {Object.entries(DistrictLabels).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
@@ -102,21 +174,17 @@ export function SearchFilters({
           </select>
         </div>
 
-        {/* Condition Filter */}
         <div>
-          <label
-            htmlFor="condition"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+          <label htmlFor="condition" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
             Condição
           </label>
           <select
             id="condition"
             value={filters.condition || ""}
-            onChange={(e) => handleChange("condition", e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            onChange={(event) => handleChange("condition", event.target.value)}
+            className={controlClass}
           >
-            <option value="">Todas as Condições</option>
+            <option value="">Todas as condições</option>
             {Object.entries(ConditionLabels).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
@@ -126,52 +194,54 @@ export function SearchFilters({
         </div>
       </div>
 
-      {/* Quick Filter Chips */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <span className="text-sm text-gray-500 mr-2">Filtros rápidos:</span>
+      <div className={`${mobileFiltersOpen ? "flex" : "hidden"} mt-4 flex-wrap items-center gap-2 md:flex`}>
+        <span className="mr-1 text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
+          Filtros rápidos
+        </span>
         <button
-          onClick={() => handleChange("condition", "NEW")}
-          className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+          type="button"
+          onClick={() => handleChange("condition", filters.condition === "NEW" ? "" : "NEW")}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
             filters.condition === "NEW"
-              ? "bg-blue-500 text-white border-blue-500"
-              : "border-gray-300 hover:border-blue-400"
+              ? "border-[#08a6a6] bg-[#08a6a6] text-white"
+              : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
           }`}
         >
-          🆕 Novo
+          Novo
         </button>
         <button
-          onClick={() => handleChange("condition", "LOCAL")}
-          className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+          type="button"
+          onClick={() => handleChange("condition", filters.condition === "LOCAL" ? "" : "LOCAL")}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
             filters.condition === "LOCAL"
-              ? "bg-blue-500 text-white border-blue-500"
-              : "border-gray-300 hover:border-blue-400"
+              ? "border-[#08a6a6] bg-[#08a6a6] text-white"
+              : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
           }`}
         >
-          🇸🇹 Local
+          Local
         </button>
         <button
-          onClick={() => {
-            const params = new URLSearchParams(window.location.search);
-            params.set("featured", "true");
-            window.location.search = params.toString();
-          }}
-          className="px-3 py-1 text-sm rounded-full border border-yellow-400 hover:bg-yellow-50 transition-colors"
+          type="button"
+          onClick={() => handleChange("featured", filters.featured === "true" ? "" : "true")}
+          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            filters.featured === "true"
+              ? "border-[#082f4f] bg-[#082f4f] text-white"
+              : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
+          }`}
         >
-          ⭐ Destaque
+          Destaques
         </button>
-      </div>
 
-      {/* Clear Filters */}
-      {hasActiveFilters && (
-        <div className="mt-4 flex justify-end">
+        {hasActiveFilters && (
           <button
+            type="button"
             onClick={clearFilters}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="ml-auto rounded-full px-4 py-2 text-sm font-bold text-[#078b8d] transition hover:bg-[#e4f7f7]"
           >
-            Limpar todos os filtros
+            Limpar filtros
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

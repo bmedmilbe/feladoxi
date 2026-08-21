@@ -1,0 +1,83 @@
+{
+  "categories": [
+    { "id": 1, "name": "Carros", "slug": "carros", "description": "Veículos e acessórios", "icon": "🚗" },
+    { "id": 2, "name": "Casas", "slug": "casas", "description": "Imóveis e casas", "icon": "🏠" },
+    { "id": 3, "name": "Electrónica", "slug": "electronica", "description": "Telemóveis, laptops e gadgets", "icon": "📱" },
+    { "id": 4, "name": "Móveis", "slug": "moveis", "description": "Móveis e decoração", "icon": "🛋️" },
+    { "id": 5, "name": "Moda", "slug": "moda", "description": "Roupas e acessórios", "icon": "👗" }
+  ],
+  "ads": [
+    {
+      "id": 101,
+      "customer": {
+        "id": 1,
+        "mobile_number": "+2399990001",
+        "district": "AGUA_GRANDE",
+        "whatsapp_link": "https://wa.me/2399990001",
+        "created_at": "2026-07-10T10:00:00.000Z",
+        "updated_at": "2026-07-10T10:00:00.000Z"
+      },
+      "category": { "id": 1, "name": "Carros", "slug": "carros", "description": "Veículos e acessórios", "icon": "🚗" },
+      "product_name": "Toyota Corolla 2019",
+      "description": "Carro em ótimo estado, revisões feitas e seguro atualizado.",
+      "price": "3800000",
+      "condition": "USED",
+      "status": "ACTIVE",
+      "is_featured": true,
+      "expires_at": "2026-10-10T10:00:00.000Z",
+      "created_at": "2026-07-20T10:00:00.000Z",
+      "updated_at": "2026-07-20T10:00:00.000Z",
+      "images": [
+        { "id": 1, "image": "car.jpg", "image_url": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80", "caption": "Frente", "order": 1, "created_at": "2026-07-20T10:00:00.000Z" }
+      ]
+    },
+    {
+      "id": 102,
+      "customer": {
+        "id": 2,
+        "mobile_number": "+2399990002",
+        "district": "LOBATA",
+        "whatsapp_link": "https://wa.me/2399990002",
+        "created_at": "2026-07-12T09:30:00.000Z",
+        "updated_at": "2026-07-12T09:30:00.000Z"
+      },
+      "category": { "id": 2, "name": "Casas", "slug": "casas", "description": "Imóveis e casas", "icon": "🏠" },
+      "product_name": "Casa 2 quartos em Águas Pequenas",
+      "description": "Casa confortável com área exterior e boa localização.",
+      "price": "15000000",
+      "condition": "NEW",
+      "status": "ACTIVE",
+      "is_featured": false,
+      "expires_at": "2026-10-12T09:30:00.000Z",
+      "created_at": "2026-07-22T09:30:00.000Z",
+      "updated_at": "2026-07-22T09:30:00.000Z",
+      "images": [
+        { "id": 2, "image": "house.jpg", "image_url": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=900&q=80", "caption": "Casa", "order": 1, "created_at": "2026-07-22T09:30:00.000Z" }
+      ]
+    },
+    {
+      "id": 103,
+      "customer": {
+        "id": 3,
+        "mobile_number": "+2399990003",
+        "district": "ME_ZOCHI",
+        "whatsapp_link": "https://wa.me/2399990003",
+        "created_at": "2026-07-14T14:15:00.000Z",
+        "updated_at": "2026-07-14T14:15:00.000Z"
+      },
+      "category": { "id": 3, "name": "Electrónica", "slug": "electronica", "description": "Telemóveis, laptops e gadgets", "icon": "📱" },
+      "product_name": "iPhone 13 Pro Max",
+      "description": "Telefone semi-novo com carregador original e garantia.",
+      "price": "3200000",
+      "condition": "USED",
+      "status": "ACTIVE",
+      "is_featured": false,
+      "expires_at": "2026-10-14T14:15:00.000Z",
+      "created_at": "2026-07-24T14:15:00.000Z",
+      "updated_at": "2026-07-24T14:15:00.000Z",
+      "images": [
+        { "id": 3, "image": "phone.jpg", "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80", "caption": "Telefone", "order": 1, "created_at": "2026-07-24T14:15:00.000Z" }
+      ]
+    }
+  ]
+}

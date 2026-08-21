@@ -1,21 +1,26 @@
-// app/my-ads/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/context/AuthContext";
-import { fetchAds, deleteAd, fetchCategories } from "@/lib/api";
-import { Ad, ApiResponse, Category } from "@/types";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { EmptyState } from "@/components/EmptyState";
-import toast from "react-hot-toast";
-import { formatDistanceToNow, format } from "date-fns";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
+import toast from "react-hot-toast";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuth } from "@/context/AuthContext";
+import { deleteAd, fetchAds, fetchCategories } from "@/lib/api";
+import {
+  DistrictLabels,
+  type Ad,
+  type ApiResponse,
+  type Category,
+} from "@/types";
 
-type AdStatus = "ACTIVE" | "SUSPENDED" | "EXPIRED";
+type AdStatus = Ad["status"];
+type StatusFilter = AdStatus | "ALL";
 
 const statusLabels: Record<AdStatus, string> = {
   ACTIVE: "Ativo",
@@ -23,40 +28,75 @@ const statusLabels: Record<AdStatus, string> = {
   EXPIRED: "Expirado",
 };
 
-const statusColors: Record<AdStatus, string> = {
-  ACTIVE: "bg-green-100 text-green-800",
-  SUSPENDED: "bg-yellow-100 text-yellow-800",
-  EXPIRED: "bg-red-100 text-red-800",
+const statusStyles: Record<AdStatus, string> = {
+  ACTIVE: "border-[#b9dec9] bg-[#e7f5ee] text-[#0b6a4c]",
+  SUSPENDED: "border-[#edd9a0] bg-[#fff8df] text-[#806112]",
+  EXPIRED: "border-[#efc1b8] bg-[#fff0ec] text-[#a33a2a]",
 };
 
-const statusBadgeIcons: Record<AdStatus, string> = {
-  ACTIVE: "✅",
-  SUSPENDED: "⏸️",
-  EXPIRED: "⏰",
-};
+const statusFilters: Array<{ value: StatusFilter; label: string }> = [
+  { value: "ALL", label: "Todos" },
+  { value: "ACTIVE", label: "Ativos" },
+  { value: "SUSPENDED", label: "Suspensos" },
+  { value: "EXPIRED", label: "Expirados" },
+];
+
+function SearchIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="m16 16 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="8" y="8" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function formatPrice(price: string | null) {
+  if (!price) return "Preço a combinar";
+  return new Intl.NumberFormat("pt-ST", {
+    style: "currency",
+    currency: "STN",
+    maximumFractionDigits: 2,
+  }).format(Number(price));
+}
 
 export default function MyAdsPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedStatus, setSelectedStatus] = useState<AdStatus | "ALL">("ALL");
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("ALL");
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/auth/login");
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [authLoading, isAuthenticated, router]);
 
-  // Fetch categories for filter
   const { data: categories } = useQuery<ApiResponse<Category>>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
     enabled: isAuthenticated,
   });
 
-  // Fetch user's ads
   const {
     data: allAds,
     isLoading,
@@ -68,357 +108,353 @@ export default function MyAdsPage() {
     enabled: isAuthenticated,
   });
 
-  // Filter ads by status and category
-  const filteredAds = allAds?.results?.filter((ad) => {
-    const statusMatch =
-      selectedStatus === "ALL" || ad.status === selectedStatus;
-    const categoryMatch =
-      selectedCategory === "ALL" ||
-      (ad.category && String(ad.category.id) === selectedCategory);
-    return statusMatch && categoryMatch;
-  });
+  const ownedAds = useMemo(() => {
+    if (!user) return [];
+    return (allAds?.results || []).filter((ad) => ad.customer.id === user.id);
+  }, [allAds?.results, user]);
 
-  // Stats
-  const stats = {
-    total: allAds?.results?.length || 0,
-    active: allAds?.results?.filter((ad) => ad.status === "ACTIVE").length || 0,
-    suspended:
-      allAds?.results?.filter((ad) => ad.status === "SUSPENDED").length || 0,
-    expired:
-      allAds?.results?.filter((ad) => ad.status === "EXPIRED").length || 0,
-  };
+  const filteredAds = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  // Delete ad mutation
+    return ownedAds.filter((ad) => {
+      const matchesStatus =
+        selectedStatus === "ALL" || ad.status === selectedStatus;
+      const matchesCategory =
+        selectedCategory === "ALL" ||
+        String(ad.category?.id || "") === selectedCategory;
+      const matchesSearch =
+        !normalizedSearch ||
+        ad.product_name.toLowerCase().includes(normalizedSearch) ||
+        (ad.description || "").toLowerCase().includes(normalizedSearch);
+
+      return matchesStatus && matchesCategory && matchesSearch;
+    });
+  }, [ownedAds, searchTerm, selectedCategory, selectedStatus]);
+
+  const stats = useMemo(
+    () => ({
+      total: ownedAds.length,
+      active: ownedAds.filter((ad) => ad.status === "ACTIVE").length,
+      suspended: ownedAds.filter((ad) => ad.status === "SUSPENDED").length,
+      expired: ownedAds.filter((ad) => ad.status === "EXPIRED").length,
+    }),
+    [ownedAds],
+  );
+
   const deleteMutation = useMutation({
     mutationFn: deleteAd,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-ads"] });
-      toast.success("Anúncio removido com sucesso!");
+    onMutate: (adId: number) => setDeletingId(adId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["my-ads"] });
+      toast.success("Anúncio removido com sucesso");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Erro ao remover anúncio");
+      toast.error(error.response?.data?.error || "Não foi possível remover o anúncio");
     },
+    onSettled: () => setDeletingId(null),
   });
 
-  const handleDelete = (id: number, productName: string) => {
-    if (
-      window.confirm(
-        `Tem certeza que deseja remover o anúncio "${productName}"?`,
-      )
-    ) {
-      deleteMutation.mutate(id);
+  const handleDelete = (ad: Ad) => {
+    const confirmed = window.confirm(
+      `Remover o anúncio "${ad.product_name}"? Esta ação não pode ser anulada.`,
+    );
+    if (confirmed) deleteMutation.mutate(ad.id);
+  };
+
+  const handleCopyLink = async (adId: number) => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/ads/${adId}`);
+      toast.success("Link do anúncio copiado");
+    } catch {
+      toast.error("Não foi possível copiar o link");
     }
   };
 
-  const handleEdit = (id: number) => {
-    router.push(`/ads/edit/${id}`);
-  };
-
-  const handleStatusChange = (status: AdStatus | "ALL") => {
-    setSelectedStatus(status);
+  const clearFilters = () => {
+    setSelectedStatus("ALL");
+    setSelectedCategory("ALL");
+    setSearchTerm("");
   };
 
   if (authLoading || isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[#f4fbf6]">
         <LoadingSpinner />
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   if (isError) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600 mb-4">Erro ao carregar seus anúncios</p>
-        <button onClick={() => refetch()} className="btn-primary">
-          Tentar Novamente
-        </button>
+      <div className="bg-[#f4fbf6] px-4 py-16">
+        <div className="mx-auto max-w-xl">
+          <EmptyState
+            title="Não foi possível carregar os anúncios"
+            description="Verifique a ligação e tente novamente."
+            actionText="Tentar novamente"
+            actionOnClick={() => refetch()}
+          />
+        </div>
       </div>
     );
   }
 
+  const hasFilters = Boolean(
+    selectedStatus !== "ALL" ||
+      selectedCategory !== "ALL" ||
+      searchTerm.trim(),
+  );
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Meus Anúncios</h1>
-          <p className="text-gray-500 mt-1">
-            Gerencie todos os seus anúncios em um só lugar
-          </p>
+    <div className="min-h-[70vh] bg-[#f4fbf6]">
+      <section className="border-b border-[#d8e7dc] bg-white">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-4 py-9 sm:px-6 md:flex-row md:items-end md:justify-between lg:px-10">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#e7492f]">
+              Área do vendedor
+            </p>
+            <h1 className="mt-3 font-serif text-4xl font-semibold text-[#07382d] sm:text-5xl">
+              Meus anúncios
+            </h1>
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[#52685f]">
+              Acompanhe a sua vitrine, atualize fotografias e partilhe os produtos.
+            </p>
+          </div>
+          <Link
+            href="/ads/create"
+            className="inline-flex h-12 shrink-0 items-center justify-center rounded-md bg-[#e7492f] px-5 text-sm font-bold text-white shadow-[0_10px_22px_rgba(231,73,47,0.18)] transition hover:bg-[#c83e27]"
+          >
+            Novo anúncio
+          </Link>
         </div>
-        <Link
-          href="/ads/create"
-          className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
-        >
-          <span>➕</span>
-          Novo Anúncio
-        </Link>
-      </div>
+      </section>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            </div>
-            <span className="text-3xl">📊</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-green-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Ativos</p>
-              <p className="text-2xl font-bold text-green-600">
-                {stats.active}
-              </p>
-            </div>
-            <span className="text-3xl">✅</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-yellow-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Suspensos</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {stats.suspended}
-              </p>
-            </div>
-            <span className="text-3xl">⏸️</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-red-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Expirados</p>
-              <p className="text-2xl font-bold text-red-600">{stats.expired}</p>
-            </div>
-            <span className="text-3xl">⏰</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Status Filter */}
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handleStatusChange("ALL")}
-                className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                  selectedStatus === "ALL"
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "border-gray-300 hover:border-blue-400"
-                }`}
-              >
-                Todos
-              </button>
-              {Object.entries(statusLabels).map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => handleStatusChange(key as AdStatus)}
-                  className={`px-3 py-1 text-sm rounded-full border transition-colors flex items-center gap-1 ${
-                    selectedStatus === key
-                      ? "bg-blue-500 text-white border-blue-500"
-                      : "border-gray-300 hover:border-blue-400"
-                  }`}
-                >
-                  <span>{statusBadgeIcons[key as AdStatus]}</span>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="sm:w-48">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Categoria
-            </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            >
-              <option value="ALL">Todas</option>
-              {categories?.results?.map((category) => (
-                <option key={category.id} value={String(category.id)}>
-                  {category.icon || "📁"} {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Ads List */}
-      {filteredAds && filteredAds.length > 0 ? (
-        <div className="space-y-4">
-          {filteredAds.map((ad) => (
+      <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10">
+        <section className="grid grid-cols-2 overflow-hidden rounded-lg border border-[#d8e7dc] bg-white shadow-[0_12px_30px_rgba(14,42,35,0.06)] md:grid-cols-4">
+          {[
+            { label: "Total", value: stats.total },
+            { label: "Ativos", value: stats.active },
+            { label: "Suspensos", value: stats.suspended },
+            { label: "Expirados", value: stats.expired },
+          ].map((item, index) => (
             <div
-              key={ad.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+              key={item.label}
+              className={`px-5 py-4 ${
+                index % 2 === 0 ? "border-r" : ""
+              } ${index < 2 ? "border-b md:border-b-0" : ""} border-[#edf4ef] md:border-r md:last:border-r-0`}
             >
-              <div className="flex flex-col sm:flex-row">
-                {/* Image */}
-                <div className="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0 bg-gray-100">
-                  {ad.images && ad.images.length > 0 ? (
-                    <Image
-                      src={ad.images[0].image_url}
-                      alt={ad.product_name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <span className="text-4xl">📷</span>
-                    </div>
-                  )}
-                  {/* Featured Badge */}
-                  {ad.is_featured && (
-                    <div className="absolute top-2 left-2">
-                      <span className="bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded-full">
-                        ⭐ Destaque
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 p-4 flex flex-col">
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <Link
-                          href={`/ads/${ad.id}`}
-                          className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          {ad.product_name}
-                        </Link>
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${statusColors[ad.status as AdStatus]}`}
-                          >
-                            {statusBadgeIcons[ad.status as AdStatus]}{" "}
-                            {statusLabels[ad.status as AdStatus]}
-                          </span>
-                          {ad.category && (
-                            <span className="text-xs text-gray-500">
-                              {ad.category.icon || "📁"} {ad.category.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {ad.price && (
-                        <span className="text-lg font-bold text-blue-600">
-                          {new Intl.NumberFormat("pt-ST", {
-                            style: "currency",
-                            currency: "STN",
-                          }).format(Number(ad.price))}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Description preview */}
-                    {ad.description && (
-                      <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                        {ad.description}
-                      </p>
-                    )}
-
-                    {/* Timestamps */}
-                    <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-400">
-                      <span>
-                        Criado{" "}
-                        {formatDistanceToNow(new Date(ad.created_at), {
-                          addSuffix: true,
-                          locale: pt,
-                        })}
-                      </span>
-                      <span>
-                        Expira {format(new Date(ad.expires_at), "dd/MM/yyyy")}
-                      </span>
-                      <span>📍 {ad.customer.district}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-100">
-                    <Link
-                      href={`/ads/${ad.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                    >
-                      👁️ Ver
-                    </Link>
-                    <Link
-                      href={`/my-ads/${ad.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                    >
-                      ✏️ Editar
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(ad.id, ad.product_name)}
-                      className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
-                    >
-                      🗑️ Remover
-                    </button>
-                    {ad.status === "ACTIVE" && (
-                      <button
-                        onClick={() => {
-                          // Copy link to clipboard
-                          const url = `${window.location.origin}/ads/${ad.id}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success(
-                            "Link copiado para a área de transferência!",
-                          );
-                        }}
-                        className="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
-                      >
-                        📋 Copiar Link
-                      </button>
-                    )}
-                    {ad.status === "EXPIRED" && (
-                      <span className="text-xs text-red-500 ml-2">
-                        Este anúncio expirou e não está mais visível
-                      </span>
-                    )}
-                    {ad.status === "SUSPENDED" && (
-                      <span className="text-xs text-yellow-500 ml-2">
-                        Este anúncio foi suspenso
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#6d8179]">
+                {item.label}
+              </p>
+              <p className="mt-1 text-3xl font-black text-[#0b2f27]">{item.value}</p>
             </div>
           ))}
+        </section>
+
+        <section className="mt-6 rounded-lg border border-[#d8e7dc] bg-white p-4 shadow-[0_12px_30px_rgba(14,42,35,0.05)]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(240px,1fr)_auto_220px] lg:items-end">
+            <div>
+              <label htmlFor="my-ads-search" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
+                Pesquisar
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#6d8179]">
+                  <SearchIcon />
+                </span>
+                <input
+                  id="my-ads-search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  placeholder="Nome ou descrição do produto"
+                  className="h-11 w-full rounded-md border border-[#cfe2d5] bg-[#f8fcf9] pl-12 pr-4 text-sm text-[#173a32] outline-none focus:border-[#0b8a5f] focus:ring-4 focus:ring-[#0b8a5f]/10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
+                Estado
+              </p>
+              <div className="flex max-w-full gap-1 overflow-x-auto rounded-md bg-[#edf7f1] p-1">
+                {statusFilters.map((filter) => (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    onClick={() => setSelectedStatus(filter.value)}
+                    aria-pressed={selectedStatus === filter.value}
+                    className={`h-9 whitespace-nowrap rounded-md px-3 text-xs font-bold transition ${
+                      selectedStatus === filter.value
+                        ? "bg-[#0b2f27] text-white shadow-sm"
+                        : "text-[#52685f] hover:bg-white"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="my-ads-category" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
+                Categoria
+              </label>
+              <select
+                id="my-ads-category"
+                value={selectedCategory}
+                onChange={(event) => setSelectedCategory(event.target.value)}
+                className="h-11 w-full rounded-md border border-[#cfe2d5] bg-white px-3 text-sm font-semibold text-[#173a32] outline-none focus:border-[#0b8a5f] focus:ring-4 focus:ring-[#0b8a5f]/10"
+              >
+                <option value="ALL">Todas as categorias</option>
+                {categories?.results?.map((category) => (
+                  <option key={category.id} value={String(category.id)}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-6 flex items-center justify-between gap-4">
+          <p className="text-sm font-semibold text-[#52685f]">
+            {filteredAds.length} {filteredAds.length === 1 ? "anúncio" : "anúncios"}
+          </p>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-sm font-bold text-[#0b6a4c] hover:text-[#e7492f]"
+            >
+              Limpar filtros
+            </button>
+          )}
         </div>
-      ) : (
-        <EmptyState
-          title={
-            selectedStatus !== "ALL"
-              ? `Nenhum anúncio ${statusLabels[selectedStatus as AdStatus].toLowerCase()}`
-              : "Você ainda não tem anúncios"
-          }
-          description={
-            selectedStatus !== "ALL"
-              ? `Você não tem anúncios com status "${statusLabels[selectedStatus as AdStatus]}"`
-              : "Crie seu primeiro anúncio e comece a vender hoje mesmo!"
-          }
-          actionText="Criar Anúncio"
-          actionLink="/ads/create"
-        />
-      )}
+
+        {filteredAds.length > 0 ? (
+          <div className="mt-4 grid gap-4">
+            {filteredAds.map((ad) => {
+              const imageUrl = ad.images?.[0]?.image_url;
+              const district = DistrictLabels[ad.customer.district] || ad.customer.district;
+
+              return (
+                <article
+                  key={ad.id}
+                  className="overflow-hidden rounded-lg border border-[#d8e7dc] bg-white shadow-[0_12px_30px_rgba(14,42,35,0.05)] transition hover:border-[#b8d6c1] hover:shadow-[0_16px_38px_rgba(14,42,35,0.09)]"
+                >
+                  <div className="grid sm:grid-cols-[190px_minmax(0,1fr)]">
+                    <Link
+                      href={`/ads/${ad.id}`}
+                      className="relative block aspect-[4/3] bg-[#edf7f1] sm:aspect-auto sm:min-h-[190px]"
+                      aria-label={`Ver ${ad.product_name}`}
+                    >
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl}
+                          alt={ad.product_name}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 640px) 100vw, 190px"
+                        />
+                      ) : (
+                        <div className="flex h-full min-h-[170px] flex-col items-center justify-center px-4 text-center text-[#6d8179]">
+                          <span className="text-sm font-bold">Sem fotografia</span>
+                          <span className="mt-1 text-xs">Adicione uma na edição</span>
+                        </div>
+                      )}
+                      {ad.is_featured && (
+                        <span className="absolute left-3 top-3 rounded-md bg-[#fff3bf] px-2 py-1 text-xs font-bold text-[#725500] shadow-sm">
+                          Destaque
+                        </span>
+                      )}
+                    </Link>
+
+                    <div className="min-w-0 p-4 sm:p-5">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusStyles[ad.status]}`}>
+                              {statusLabels[ad.status]}
+                            </span>
+                            {ad.category && (
+                              <span className="text-xs font-semibold text-[#6d8179]">{ad.category.name}</span>
+                            )}
+                          </div>
+                          <Link href={`/ads/${ad.id}`} className="mt-3 block truncate text-xl font-black text-[#0b2f27] transition hover:text-[#e7492f]">
+                            {ad.product_name}
+                          </Link>
+                          {ad.description && (
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#52685f]">{ad.description}</p>
+                          )}
+                        </div>
+                        <p className="shrink-0 text-lg font-black text-[#0b6a4c]">{formatPrice(ad.price)}</p>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#edf4ef] pt-4 text-xs font-semibold text-[#6d8179]">
+                        <span>{district}</span>
+                        <span>
+                          Criado {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true, locale: pt })}
+                        </span>
+                        <span>Expira em {format(new Date(ad.expires_at), "dd/MM/yyyy")}</span>
+                        <span>{ad.images?.length || 0} {(ad.images?.length || 0) === 1 ? "foto" : "fotos"}</span>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/my-ads/${ad.id}`}
+                          className="inline-flex h-10 items-center justify-center rounded-md bg-[#0b2f27] px-4 text-sm font-bold text-white transition hover:bg-[#0b6a4c]"
+                        >
+                          Editar
+                        </Link>
+                        <Link
+                          href={`/ads/${ad.id}`}
+                          className="inline-flex h-10 items-center justify-center rounded-md border border-[#cfe2d5] px-4 text-sm font-bold text-[#0b3b2f] transition hover:bg-[#e7f5ee]"
+                        >
+                          Ver anúncio
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyLink(ad.id)}
+                          className="grid h-10 w-10 place-items-center rounded-md border border-[#cfe2d5] text-[#0b3b2f] transition hover:bg-[#e7f5ee]"
+                          aria-label={`Copiar link de ${ad.product_name}`}
+                          title="Copiar link"
+                        >
+                          <CopyIcon />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(ad)}
+                          disabled={deletingId === ad.id}
+                          className="ml-auto grid h-10 w-10 place-items-center rounded-md border border-[#efc1b8] text-[#a33a2a] transition hover:bg-[#fff0ec] disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={`Remover ${ad.product_name}`}
+                          title="Remover anúncio"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-5">
+            <EmptyState
+              title={hasFilters ? "Nenhum anúncio encontrado" : "Ainda não tem anúncios"}
+              description={
+                hasFilters
+                  ? "Altere ou limpe os filtros para ver outros produtos."
+                  : "Crie o primeiro anúncio e comece a vender no Mercado STP."
+              }
+              actionText={hasFilters ? "Limpar filtros" : "Criar anúncio"}
+              actionLink={hasFilters ? undefined : "/ads/create"}
+              actionOnClick={hasFilters ? clearFilters : undefined}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

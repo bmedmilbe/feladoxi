@@ -44,10 +44,10 @@ export interface AdImage {
 export type AdCondition = "NEW" | "USED" | "IMPORTED" | "LOCAL";
 
 export const ConditionLabels: Record<AdCondition, string> = {
-  NEW: "🆕 Novo",
-  USED: "♻️ Usado",
-  IMPORTED: "📦 Importado",
-  LOCAL: "🇸🇹 Produzido em São Tomé",
+  NEW: "Novo",
+  USED: "Usado",
+  IMPORTED: "Importado",
+  LOCAL: "Produzido em São Tomé",
 };
 
 export const ConditionColors: Record<AdCondition, string> = {
@@ -76,12 +76,22 @@ export interface Ad {
 export interface TemporaryAd {
   id: number;
   session_token: string;
-  category: Category | null;
+  category: number | null;
   product_name: string;
   description: string;
   price: string | null;
+  temporary_images: TemporaryAdImage[];
   created_at: string;
   updated_at: string;
+}
+
+export interface TemporaryAdImage {
+  id: number;
+  image: string;
+  image_url: string;
+  caption?: string;
+  order?: number;
+  created_at: string;
 }
 
 export type District =
@@ -98,10 +108,10 @@ export const DistrictLabels: Record<District, string> = {
   AGUA_GRANDE: "Água Grande",
   CANTAGALO: "Cantagalo",
   CAUE: "Caué",
-  LEMBA: "Lembá",
+  LEMBA: "Lemba",
   LOBATA: "Lobata",
   ME_ZOCHI: "Mé-Zóchi",
-  PAGUE: "Pagué",
+  PAGUE: "Pague",
   DIASPORA: "Diáspora",
 };
 
@@ -121,10 +131,5 @@ export interface FilterState {
   category: string;
   district: string;
   condition?: string;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  error?: string;
+  featured?: string;
 }

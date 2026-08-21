@@ -1,0 +1,27 @@
+
+> feladoxi@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3000
+
+   ▲ Next.js 14.0.4
+   - Local:        http://127.0.0.1:3000
+   - Network:      http://127.0.0.1:3000
+   - Environments: .env.local
+
+ ✓ Ready in 3.7s
+ ○ Compiling / ...
+ ✓ Compiled / in 4.9s (2539 modules)
+ ✓ Compiled in 672ms (1218 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 1248ms (2539 modules)
+ ○ Compiling /ads/create ...
+ ✓ Compiled /ads/create in 1644ms (2575 modules)
+ ○ Compiling /auth/login ...
+ ✓ Compiled /auth/login in 568ms (2585 modules)
+ ✓ Compiled /auth/register in 344ms (2591 modules)
+ ✓ Compiled /cart in 434ms (2597 modules)
+ ○ Compiling /my-ads ...
+ ✓ Compiled /my-ads in 567ms (2603 modules)
+ ✓ Compiled /my-ads/[id] in 420ms (2609 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1354ms (1349 modules)
+ ✓ Compiled /cart in 444ms (1353 modules)

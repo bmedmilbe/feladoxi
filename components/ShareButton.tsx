@@ -1,4 +1,3 @@
-// components/ShareButton.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,30 +7,33 @@ interface ShareButtonProps {
   url: string;
   title?: string;
   text?: string;
+  className?: string;
 }
 
-export function ShareButton({ url, title, text }: ShareButtonProps) {
+export function ShareButton({
+  url,
+  title,
+  text,
+  className,
+}: ShareButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleShare = async () => {
     setIsLoading(true);
     try {
-      // Check if Web Share API is available
       if (navigator.share) {
         await navigator.share({
-          title: title || "Confira este anúncio!",
-          text: text || "Encontrei no STP Market",
-          url: url,
+          title: title || "Veja este anúncio",
+          text: text || "Encontrei este produto no Mercado STP",
+          url,
         });
       } else {
-        // Fallback: Copy to clipboard
         await navigator.clipboard.writeText(url);
-        toast.success("Link copiado para a área de transferência!");
+        toast.success("Link copiado");
       }
     } catch (error) {
-      // User cancelled or error
       if (error instanceof Error && error.name !== "AbortError") {
-        toast.error("Falha ao compartilhar");
+        toast.error("Não foi possível partilhar");
       }
     } finally {
       setIsLoading(false);
@@ -40,12 +42,15 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleShare}
-      disabled={isLoading}
-      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+      disabled={isLoading || !url}
+      className={
+        className ||
+        "inline-flex h-12 items-center justify-center rounded-md border border-[#cfe2d5] px-5 text-sm font-bold text-[#0b3b2f] transition hover:bg-[#e7f5ee] disabled:cursor-not-allowed disabled:opacity-60"
+      }
     >
-      <span>📤</span>
-      {isLoading ? "Compartilhando..." : "Compartilhar"}
+      {isLoading ? "A partilhar..." : "Partilhar"}
     </button>
   );
 }
