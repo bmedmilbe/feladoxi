@@ -1,32 +1,39 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 const footerLinks = [
   {
     title: "Comprar",
+    titleEn: "Buy",
     links: [
-      { label: "Produtos locais", href: "/?category=produtos-agricolas" },
-      { label: "Eletrónica", href: "/?category=electronica" },
-      { label: "Casa", href: "/?category=moveis" },
-      { label: "Veículos", href: "/?category=carros" },
+      { label: "Produtos locais", labelEn: "Local products", href: "/?category=produtos-agricolas" },
+      { label: "Eletrónica", labelEn: "Electronics", href: "/?category=electronica" },
+      { label: "Casa", labelEn: "Home", href: "/?category=moveis" },
+      { label: "Veículos", labelEn: "Vehicles", href: "/?category=carros" },
     ],
   },
   {
     title: "Vender",
+    titleEn: "Sell",
     links: [
-      { label: "Anunciar produto", href: "/ads/create" },
-      { label: "Os meus anúncios", href: "/my-ads" },
-      { label: "Entrar", href: "/auth/login" },
-      { label: "Criar conta", href: "/auth/register" },
+      { label: "Anunciar produto", labelEn: "List a product", href: "/ads/create" },
+      { label: "Os meus anúncios", labelEn: "My listings", href: "/my-ads" },
+      { label: "Entrar", labelEn: "Sign in", href: "/auth/login" },
+      { label: "Criar conta", labelEn: "Create account", href: "/auth/register" },
     ],
   },
   {
     title: "Mercado STP",
+    titleEn: "Mercado STP",
     links: [
-      { label: "Ajuda", href: "/help" },
-      { label: "Sobre nós", href: "/about" },
-      { label: "Destaques", href: "/?featured=true" },
-      { label: "Categorias", href: "/#categorias" },
-      { label: "Vitrine", href: "/#produtos" },
+      { label: "Ajuda", labelEn: "Help", href: "/help" },
+      { label: "Sobre nós", labelEn: "About us", href: "/about" },
+      { label: "Publicidade", labelEn: "Advertising", href: "/advertise" },
+      { label: "Destaques", labelEn: "Featured", href: "/?featured=true" },
+      { label: "Categorias", labelEn: "Categories", href: "/#categorias" },
+      { label: "Vitrine", labelEn: "Marketplace", href: "/#produtos" },
     ],
   },
 ];
@@ -62,6 +69,7 @@ function ChevronIcon() {
 }
 
 export function Footer() {
+  const { tr } = useLanguage();
   return (
     <footer id="rodape" className="border-t border-[#0d4d70] bg-[#052f4b] text-white">
       <div className="mx-auto px-4 py-8 sm:hidden">
@@ -71,26 +79,26 @@ export function Footer() {
             <span className="truncate text-xl font-black">Mercado STP</span>
           </Link>
           <span className="shrink-0 rounded-full border border-[#65d8d5]/35 bg-[#65d8d5]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.12em] text-[#8ce4e1]">
-            Mercado local
+            {tr("Mercado local", "Local marketplace")}
           </span>
         </div>
 
         <p className="mt-4 max-w-md text-sm leading-6 text-[#d9eef6]">
-          Produtos de São Tomé e Príncipe, com contacto direto entre comprador e fornecedor.
+          {tr("Produtos de São Tomé e Príncipe, com contacto direto entre comprador e fornecedor.", "Products from São Tomé and Príncipe, with direct contact between buyers and sellers.")}
         </p>
 
         <Link
           href="/ads/create"
           className="mt-5 inline-flex h-12 w-full items-center justify-center rounded-md bg-[#ffd23f] px-5 text-sm font-black text-[#082f4f] transition hover:bg-[#ffe071]"
         >
-          Anunciar produto
+          {tr("Anunciar produto", "List a product")}
         </Link>
 
         <div className="mt-6 divide-y divide-white/10 border-y border-white/10">
           {footerLinks.map((group) => (
             <details key={group.title} className="group">
               <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 py-3 text-sm font-black [&::-webkit-details-marker]:hidden">
-                <span>{group.title}</span>
+                <span>{tr(group.title, group.titleEn)}</span>
                 <span className="grid h-8 w-8 place-items-center rounded-md bg-white/10 text-[#65d8d5]">
                   <ChevronIcon />
                 </span>
@@ -98,7 +106,7 @@ export function Footer() {
               <nav className="grid grid-cols-2 gap-x-4 gap-y-3 pb-5 text-sm font-semibold text-[#d9eef6]">
                 {group.links.map((link) => (
                   <Link key={link.href} href={link.href} className="min-w-0 truncate transition hover:text-[#65d8d5]">
-                    {link.label}
+                    {tr(link.label, link.labelEn)}
                   </Link>
                 ))}
               </nav>
@@ -114,14 +122,13 @@ export function Footer() {
             <span className="text-3xl font-black">Mercado STP</span>
           </Link>
           <p className="mt-5 max-w-md text-sm leading-7 text-[#d9eef6]">
-            Compra e venda em São Tomé e Príncipe, com produtos locais,
-            tecnologia, casa, moda e oportunidades para a comunidade.
+            {tr("Compra e venda em São Tomé e Príncipe, com produtos locais, tecnologia, casa, moda e oportunidades para a comunidade.", "Buy and sell in São Tomé and Príncipe, with local products, technology, homeware, fashion and opportunities for the community.")}
           </p>
           <Link
             href="/ads/create"
             className="mt-6 inline-flex h-11 items-center rounded-md bg-[#ffd23f] px-5 text-sm font-black text-[#082f4f] transition hover:bg-[#ffe071]"
           >
-            Anunciar produto
+            {tr("Anunciar produto", "List a product")}
           </Link>
         </div>
 
@@ -129,7 +136,7 @@ export function Footer() {
           {footerLinks.map((group) => (
             <div key={group.title}>
               <h2 className="text-xs font-black uppercase tracking-[0.18em] text-[#ffe071]">
-                {group.title}
+                {tr(group.title, group.titleEn)}
               </h2>
               <nav className="mt-4 grid gap-3 text-sm font-semibold text-[#d9eef6]">
                 {group.links.map((link) => (
@@ -138,7 +145,7 @@ export function Footer() {
                     href={link.href}
                     className="transition hover:text-[#65d8d5]"
                   >
-                    {link.label}
+                    {tr(link.label, link.labelEn)}
                   </Link>
                 ))}
               </nav>
@@ -150,7 +157,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1440px] items-center justify-center px-4 py-4 text-center text-xs text-[#bdd7e0] sm:justify-between sm:px-6 sm:py-5 sm:text-left sm:text-sm lg:px-10">
           <span>Mercado STP</span>
-          <span className="hidden sm:inline">Feito para comprar, vender e circular produtos com clareza.</span>
+          <span className="hidden sm:inline">{tr("Feito para comprar, vender e circular produtos com clareza.", "Made to help people buy, sell and discover products with clarity.")}</span>
         </div>
       </div>
     </footer>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Category } from "@/types";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface CategoryGridProps {
   categories: Category[];
@@ -70,6 +71,7 @@ function categoryPriority(category: Category) {
 }
 
 function CategoryCard({ category, index, onSelect }: CategoryCardProps) {
+  const { tr, categoryName } = useLanguage();
   return (
     <button
       type="button"
@@ -87,10 +89,10 @@ function CategoryCard({ category, index, onSelect }: CategoryCardProps) {
       </span>
       <span className="flex min-w-0 flex-1 flex-col justify-center px-2 py-3 md:px-4 md:py-4">
         <strong className="line-clamp-2 text-center text-xs font-black leading-4 text-[#082f4f] md:text-left md:text-sm md:leading-5">
-          {category.name}
+          {categoryName(category.slug, category.name)}
         </strong>
         <span className="mt-2 hidden line-clamp-2 text-xs leading-5 text-[#657d8d] md:block">
-          {category.description || "Explore os anúncios desta categoria."}
+          {category.description || tr("Explore os anúncios desta categoria.", "Explore listings in this category.")}
         </span>
         <span className="mt-3 hidden h-9 w-9 items-center justify-center self-end rounded-full bg-[#dff5f5] text-[#078b8d] transition group-hover:bg-[#09a5a6] group-hover:text-white md:inline-flex">
           <ArrowIcon />
@@ -101,6 +103,7 @@ function CategoryCard({ category, index, onSelect }: CategoryCardProps) {
 }
 
 export function CategoryGrid({ categories }: CategoryGridProps) {
+  const { tr } = useLanguage();
   const router = useRouter();
   const [rotationIndex, setRotationIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
@@ -143,7 +146,7 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
 
   if (displayCategories.length === 0) {
     return (
-      <div className="grid grid-cols-3 gap-2 md:gap-4" aria-label="A carregar categorias">
+      <div className="grid grid-cols-3 gap-2 md:gap-4" aria-label={tr("A carregar categorias", "Loading categories")}>
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="h-[122px] animate-pulse rounded-lg border border-[#dceaf0] bg-[#eef6f8] md:h-[154px]" />
         ))}
@@ -163,7 +166,7 @@ export function CategoryGrid({ categories }: CategoryGridProps) {
             aria-controls="featured-category-grid"
           >
             <GridIcon />
-            {showAll ? "Mostrar menos" : "Mostrar mais"}
+            {showAll ? tr("Mostrar menos", "Show less") : tr("Mostrar mais", "Show more")}
             <ChevronIcon open={showAll} />
           </button>
         </div>

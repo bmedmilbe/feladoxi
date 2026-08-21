@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   createTemporaryAd,
   fetchCategories,
@@ -39,17 +40,30 @@ const textAreaClass =
 const sellerNotes = [
   {
     title: "Rascunho protegido",
+    titleEn: "Protected draft",
     description: "Pode criar o anúncio agora e confirmar a publicação depois do login.",
+    descriptionEn: "Create the listing now and confirm publication after signing in.",
   },
   {
     title: "Mais fotos, mais confiança",
+    titleEn: "More photos, more confidence",
     description: "Use imagens reais do produto para reduzir dúvidas na negociação.",
+    descriptionEn: "Use real product photos to reduce uncertainty during negotiation.",
   },
   {
     title: "Preço claro",
+    titleEn: "Clear pricing",
     description: "Indique o valor em STN ou deixe em aberto quando preferir combinar.",
+    descriptionEn: "Enter the price in STN or leave it open when you prefer to negotiate.",
   },
 ];
+
+const conditionNamesEn: Record<string, string> = {
+  NEW: "New",
+  USED: "Used",
+  IMPORTED: "Imported",
+  LOCALLY_MADE: "Made in São Tomé",
+};
 
 function UploadIcon() {
   return (
@@ -95,9 +109,10 @@ function TrashIcon() {
 
 export default function CreateAdPage() {
   const router = useRouter();
+  const { language, tr, categoryName } = useLanguage();
   const previewUrlsRef = useRef<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("A guardar anúncio...");
+  const [submitMessage, setSubmitMessage] = useState(tr("A guardar anúncio...", "Saving listing..."));
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [formData, setFormData] = useState<CreateAdFormData>({
     product_name: "",
@@ -126,7 +141,7 @@ export default function CreateAdPage() {
       const remainingSlots = maxImages - formData.images.length;
 
       if (remainingSlots <= 0) {
-        toast.error(`Pode adicionar no máximo ${maxImages} fotos`);
+        toast.error(tr(`Pode adicionar no máximo ${maxImages} fotos`, `You can add up to ${maxImages} photos`));
         return;
       }
 
@@ -141,10 +156,10 @@ export default function CreateAdPage() {
       setImagePreviews((current) => [...current, ...nextPreviews]);
 
       if (acceptedFiles.length > remainingSlots) {
-        toast.error(`Foram adicionadas apenas ${remainingSlots} fotos`);
+        toast.error(tr(`Foram adicionadas apenas ${remainingSlots} fotos`, `Only ${remainingSlots} photos were added`));
       }
     },
-    [formData.images.length],
+    [formData.images.length, tr],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -155,7 +170,7 @@ export default function CreateAdPage() {
     maxSize: maxImageSizeMb * 1024 * 1024,
     maxFiles: maxImages,
     onDropRejected: () => {
-      toast.error(`Use imagens JPG, PNG ou WEBP até ${maxImageSizeMb}MB`);
+      toast.error(tr(`Use imagens JPG, PNG ou WEBP até ${maxImageSizeMb}MB`, `Use JPG, PNG or WEBP images up to ${maxImageSizeMb}MB`));
     },
   });
 
@@ -188,17 +203,17 @@ export default function CreateAdPage() {
     event.preventDefault();
 
     if (!formData.product_name.trim()) {
-      toast.error("Informe o nome do produto");
+      toast.error(tr("Informe o nome do produto", "Enter the product name"));
       return;
     }
 
     if (!formData.category) {
-      toast.error("Selecione uma categoria");
+      toast.error(tr("Selecione uma categoria", "Select a category"));
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("A guardar anúncio...");
+    setSubmitMessage(tr("A guardar anúncio...", "Saving listing..."));
 
     try {
       const submitData = new FormData();
@@ -220,7 +235,7 @@ export default function CreateAdPage() {
       for (let index = 0; index < formData.images.length; index += 1) {
         const image = formData.images[index];
         setSubmitMessage(
-          `A enviar foto ${index + 1} de ${formData.images.length}...`,
+          tr(`A enviar foto ${index + 1} de ${formData.images.length}...`, `Uploading photo ${index + 1} of ${formData.images.length}...`),
         );
         await uploadTemporaryAdImage(response.id, image, index);
       }
@@ -235,13 +250,13 @@ export default function CreateAdPage() {
         }),
       );
 
-      toast.success("Anúncio guardado. Entre para publicar.");
+      toast.success(tr("Anúncio guardado. Entre para publicar.", "Listing saved. Sign in to publish it."));
       router.push("/auth/login?pending_ad=true");
     } catch (error: any) {
       console.error("Error creating temporary ad:", error);
       toast.error(
         error.response?.data?.error ||
-          "Não foi possível criar o anúncio. Tente novamente.",
+          tr("Não foi possível criar o anúncio. Tente novamente.", "Unable to create the listing. Please try again."),
       );
     } finally {
       setIsSubmitting(false);
@@ -262,14 +277,13 @@ export default function CreateAdPage() {
         <div className="mx-auto max-w-[1440px] px-4 py-10 sm:px-6 lg:px-10">
           <div className="max-w-3xl">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#e7492f]">
-              Vender no mercado
+              {tr("Vender no mercado", "Sell on the marketplace")}
             </p>
             <h1 className="mt-3 font-serif text-4xl font-semibold leading-tight text-[#07382d] sm:text-5xl">
-              Anunciar produto
+              {tr("Anunciar produto", "List a product")}
             </h1>
             <p className="mt-4 text-base leading-7 text-[#52685f]">
-              Monte uma vitrine clara para o seu produto. Depois de guardar o
-              rascunho, entre na conta para publicar.
+              {tr("Monte uma vitrine clara para o seu produto. Depois de guardar o rascunho, entre na conta para publicar.", "Create a clear showcase for your product. After saving the draft, sign in to publish it.")}
             </p>
           </div>
         </div>
@@ -285,14 +299,14 @@ export default function CreateAdPage() {
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">
-                    Dados principais
+                    {tr("Dados principais", "Main details")}
                   </p>
                   <h2 className="mt-2 text-xl font-black text-[#0b2f27]">
-                    Produto
+                    {tr("Produto", "Product")}
                   </h2>
                 </div>
                 <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">
-                  Obrigatorio
+                  {tr("Obrigatório", "Required")}
                 </span>
               </div>
 
@@ -302,7 +316,7 @@ export default function CreateAdPage() {
                     htmlFor="product_name"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    Nome do produto
+                    {tr("Nome do produto", "Product name")}
                   </label>
                   <input
                     id="product_name"
@@ -322,7 +336,7 @@ export default function CreateAdPage() {
                     htmlFor="category"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    Categoria
+                    {tr("Categoria", "Category")}
                   </label>
                   <select
                     id="category"
@@ -333,10 +347,10 @@ export default function CreateAdPage() {
                     }
                     className={fieldClass}
                   >
-                    <option value="">Selecione uma categoria</option>
+                    <option value="">{tr("Selecione uma categoria", "Select a category")}</option>
                     {categories?.results?.map((category) => (
                       <option key={category.id} value={category.id}>
-                        {category.name}
+                        {categoryName(category.slug, category.name)}
                       </option>
                     ))}
                   </select>
@@ -347,7 +361,7 @@ export default function CreateAdPage() {
                     htmlFor="condition"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    Condição
+                    {tr("Condição", "Condition")}
                   </label>
                   <select
                     id="condition"
@@ -359,7 +373,7 @@ export default function CreateAdPage() {
                   >
                     {Object.entries(ConditionLabels).map(([value, label]) => (
                       <option key={value} value={value}>
-                        {label}
+                        {language === "en" ? conditionNamesEn[value] || label : label}
                       </option>
                     ))}
                   </select>
@@ -370,7 +384,7 @@ export default function CreateAdPage() {
                     htmlFor="price"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    Preço em STN
+                    {tr("Preço em STN", "Price in STN")}
                   </label>
                   <input
                     id="price"
@@ -389,7 +403,7 @@ export default function CreateAdPage() {
                     htmlFor="description"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    Descrição
+                    {tr("Descrição", "Description")}
                   </label>
                   <textarea
                     id="description"
@@ -397,7 +411,7 @@ export default function CreateAdPage() {
                     onChange={(event) =>
                       updateField("description", event.target.value)
                     }
-                    placeholder="Descreva estado, origem, acessorios e detalhes importantes."
+                    placeholder={tr("Descreva o estado, origem, acessórios e detalhes importantes.", "Describe the condition, origin, accessories and important details.")}
                     className={textAreaClass}
                   />
                 </div>
@@ -407,10 +421,10 @@ export default function CreateAdPage() {
             <section className="border-t border-[#edf4ef] pt-6">
               <div className="mb-5">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">
-                  Galeria
+                  {tr("Galeria", "Gallery")}
                 </p>
                 <h2 className="mt-2 text-xl font-black text-[#0b2f27]">
-                  Fotos do produto
+                  {tr("Fotos do produto", "Product photos")}
                 </h2>
               </div>
 
@@ -428,11 +442,11 @@ export default function CreateAdPage() {
                 </div>
                 <p className="mt-4 text-sm font-bold text-[#0b2f27]">
                   {isDragActive
-                    ? "Solte as imagens aqui"
-                    : "Arraste fotos ou clique para selecionar"}
+                    ? tr("Solte as imagens aqui", "Drop the images here")
+                    : tr("Arraste fotos ou clique para selecionar", "Drag photos here or click to select")}
                 </p>
                 <p className="mt-1 text-xs text-[#6d8179]">
-                  Até {maxImages} imagens, {maxImageSizeMb}MB por ficheiro
+                  {tr(`Até ${maxImages} imagens, ${maxImageSizeMb}MB por ficheiro`, `Up to ${maxImages} images, ${maxImageSizeMb}MB per file`)}
                 </p>
               </div>
 
@@ -443,14 +457,14 @@ export default function CreateAdPage() {
                       <div
                         className="aspect-square bg-cover bg-center"
                         style={{ backgroundImage: `url(${preview})` }}
-                        aria-label={`Foto ${index + 1}`}
+                        aria-label={`${tr("Foto", "Photo")} ${index + 1}`}
                         role="img"
                       />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
                         className="absolute right-2 top-2 grid h-9 w-9 place-items-center rounded-full bg-white text-[#a33a2a] shadow-md transition hover:bg-[#ffe8df]"
-                        aria-label={`Remover foto ${index + 1}`}
+                        aria-label={`${tr("Remover foto", "Remove photo")} ${index + 1}`}
                       >
                         <TrashIcon />
                       </button>
@@ -466,14 +480,14 @@ export default function CreateAdPage() {
                 disabled={isSubmitting}
                 className="inline-flex h-12 flex-1 items-center justify-center rounded-md bg-[#e7492f] px-6 text-sm font-bold text-white transition hover:bg-[#c83e27] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isSubmitting ? submitMessage : "Guardar e continuar"}
+                {isSubmitting ? submitMessage : tr("Guardar e continuar", "Save and continue")}
               </button>
               <button
                 type="button"
                 onClick={() => router.back()}
                 className="inline-flex h-12 items-center justify-center rounded-md border border-[#cfe2d5] px-6 text-sm font-bold text-[#0b3b2f] transition hover:bg-[#e7f5ee]"
               >
-                Cancelar
+                {tr("Cancelar", "Cancel")}
               </button>
             </div>
           </div>
@@ -482,7 +496,7 @@ export default function CreateAdPage() {
         <aside className="space-y-4">
           <div className="rounded-lg border border-[#d8e7dc] bg-white p-5 shadow-[0_14px_34px_rgba(14,42,35,0.08)]">
             <h2 className="font-serif text-2xl font-semibold text-[#07382d]">
-              Publicação
+              {tr("Publicação", "Publication")}
             </h2>
             <div className="mt-5 grid gap-4">
               {sellerNotes.map((note) => (
@@ -492,10 +506,10 @@ export default function CreateAdPage() {
                   </span>
                   <div>
                     <h3 className="text-sm font-black text-[#0b2f27]">
-                      {note.title}
+                      {language === "en" ? note.titleEn : note.title}
                     </h3>
                     <p className="mt-1 text-sm leading-6 text-[#52685f]">
-                      {note.description}
+                      {language === "en" ? note.descriptionEn : note.description}
                     </p>
                   </div>
                 </div>
@@ -505,11 +519,10 @@ export default function CreateAdPage() {
 
           <div className="rounded-lg bg-[#0b2f27] p-5 text-white shadow-[0_18px_45px_rgba(14,42,35,0.16)]">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffb199]">
-              Próxima etapa
+              {tr("Próxima etapa", "Next step")}
             </p>
             <p className="mt-3 text-sm leading-7 text-[#e7fff3]">
-              Ao continuar, o anúncio fica associado a um rascunho. No login, a
-              plataforma publica o produto na sua conta.
+              {tr("Ao continuar, o anúncio fica associado a um rascunho. No login, a plataforma publica o produto na sua conta.", "When you continue, the listing is saved as a draft. After you sign in, the platform publishes the product to your account.")}
             </p>
           </div>
         </aside>

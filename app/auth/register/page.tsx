@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { AuthShell } from "@/components/AuthShell";
 import { PhoneField } from "@/components/PhoneField";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { DistrictLabels } from "@/types";
 
 function CheckIcon() {
@@ -29,6 +30,7 @@ function Spinner() {
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading: authLoading } = useAuth();
+  const { language, tr } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPendingAd, setHasPendingAd] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
@@ -46,11 +48,11 @@ export default function RegisterPage() {
     event.preventDefault();
 
     if (formData.mobile_number.trim().length < 6) {
-      toast.error("Indique um número de telefone válido");
+      toast.error(tr("Indique um número de telefone válido", "Enter a valid phone number"));
       return;
     }
     if (!formData.district) {
-      toast.error("Selecione o seu distrito");
+      toast.error(tr("Selecione o seu distrito", "Select your district"));
       return;
     }
 
@@ -72,14 +74,14 @@ export default function RegisterPage() {
 
   return (
     <AuthShell
-      eyebrow={registrationComplete ? "Conta preparada" : "Primeiro acesso"}
-      title={registrationComplete ? "Verifique o telefone" : "Criar conta"}
+      eyebrow={registrationComplete ? tr("Conta preparada", "Account ready") : tr("Primeiro acesso", "First access")}
+      title={registrationComplete ? tr("Verifique o telefone", "Check your phone") : tr("Criar conta", "Create account")}
       description={
         registrationComplete
-          ? "Enviámos um PIN de 4 dígitos por SMS. Use-o para entrar na sua conta."
+          ? tr("Enviámos um PIN de 4 dígitos por SMS. Use-o para entrar na sua conta.", "We sent a 4-digit PIN by SMS. Use it to sign in to your account.")
           : hasPendingAd
-            ? "Crie a conta para publicar o anúncio que ficou guardado."
-            : "Basta um número de telefone e o seu distrito para começar."
+            ? tr("Crie a conta para publicar o anúncio que ficou guardado.", "Create an account to publish your saved listing.")
+            : tr("Basta um número de telefone e o seu distrito para começar.", "All you need is a phone number and your district to get started.")
       }
     >
       {registrationComplete ? (
@@ -87,30 +89,30 @@ export default function RegisterPage() {
           <div className="grid h-16 w-16 place-items-center rounded-full bg-[#e7f5ee] text-[#0b8a5f]">
             <CheckIcon />
           </div>
-          <h2 className="mt-5 text-xl font-black text-[#0b2f27]">Conta criada com sucesso</h2>
+          <h2 className="mt-5 text-xl font-black text-[#0b2f27]">{tr("Conta criada com sucesso", "Account created successfully")}</h2>
           <p className="mt-2 text-sm leading-6 text-[#52685f]">
-            O código foi enviado para <strong className="text-[#0b2f27]">{fullNumber}</strong>.
+            {tr("O código foi enviado para", "The code was sent to")} <strong className="text-[#0b2f27]">{fullNumber}</strong>.
           </p>
           <div className="mt-5 border-l-4 border-[#0b8a5f] bg-[#eef8f1] px-4 py-3 text-sm leading-6 text-[#426057]">
             {hasPendingAd
-              ? "Depois de entrar, o rascunho será publicado automaticamente na sua conta."
-              : "Guarde o PIN. Vai precisar dele sempre que entrar no Mercado STP."}
+              ? tr("Depois de entrar, o rascunho será publicado automaticamente na sua conta.", "After you sign in, the draft will be published automatically to your account.")
+              : tr("Guarde o PIN. Vai precisar dele sempre que entrar no Mercado STP.", "Keep your PIN. You will need it whenever you sign in to Mercado STP.")}
           </div>
           <button
             type="button"
             onClick={() => router.push("/auth/login")}
             className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-md bg-[#e7492f] px-5 text-sm font-black text-white transition hover:bg-[#c83e27]"
           >
-            Continuar para entrar
+            {tr("Continuar para entrar", "Continue to sign in")}
           </button>
         </div>
       ) : (
         <>
           {hasPendingAd && (
             <div className="mb-6 border-l-4 border-[#e7492f] bg-[#fff5ef] px-4 py-3">
-              <p className="text-sm font-black text-[#0b2f27]">O seu rascunho está protegido</p>
+              <p className="text-sm font-black text-[#0b2f27]">{tr("O seu rascunho está protegido", "Your draft is protected")}</p>
               <p className="mt-1 text-xs leading-5 text-[#6d594f]">
-                A publicação será concluída depois do primeiro acesso.
+                {tr("A publicação será concluída depois do primeiro acesso.", "The listing will be published after your first sign-in.")}
               </p>
             </div>
           )}
@@ -129,12 +131,12 @@ export default function RegisterPage() {
             />
 
             <div className="border-l-2 border-[#0b8a5f] bg-[#eef8f1] px-4 py-3 text-xs leading-5 text-[#52685f]">
-              O PIN de 4 dígitos será enviado por SMS para este número.
+              {tr("O PIN de 4 dígitos será enviado por SMS para este número.", "The 4-digit PIN will be sent to this number by SMS.")}
             </div>
 
             <div>
               <label htmlFor="register-district" className="market-label">
-                Distrito <span className="text-[#e7492f]">*</span>
+                {tr("Distrito", "District")} <span className="text-[#e7492f]">*</span>
               </label>
               <select
                 id="register-district"
@@ -145,10 +147,10 @@ export default function RegisterPage() {
                 }
                 className="market-field mt-2"
               >
-                <option value="">Selecione o seu distrito</option>
+                <option value="">{tr("Selecione o seu distrito", "Select your district")}</option>
                 {Object.entries(DistrictLabels).map(([key, label]) => (
                   <option key={key} value={key}>
-                    {label}
+                    {language === "en" && key === "DIASPORA" ? "Diaspora" : label}
                   </option>
                 ))}
               </select>
@@ -161,17 +163,17 @@ export default function RegisterPage() {
             >
               {(isSubmitting || authLoading) && <Spinner />}
               {isSubmitting || authLoading
-                ? "A enviar PIN..."
+                ? tr("A enviar PIN...", "Sending PIN...")
                 : hasPendingAd
-                  ? "Criar conta e continuar"
-                  : "Criar conta"}
+                  ? tr("Criar conta e continuar", "Create account and continue")
+                  : tr("Criar conta", "Create account")}
             </button>
           </form>
 
           <div className="mt-6 border-t border-[#edf4ef] pt-5 text-center text-sm text-[#52685f]">
-            Já tem uma conta?{" "}
+            {tr("Já tem uma conta?", "Already have an account?")}{" "}
             <Link href="/auth/login" className="font-black text-[#0b6a4c] hover:text-[#e7492f]">
-              Entrar
+              {tr("Entrar", "Sign in")}
             </Link>
           </div>
         </>

@@ -9,6 +9,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PhoneField } from "@/components/PhoneField";
 import { useAuth } from "@/context/AuthContext";
 import { resendPin } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface PendingAd {
   token: string;
@@ -28,6 +29,7 @@ function Spinner() {
 function LoginForm() {
   const searchParams = useSearchParams();
   const { login, isLoading: authLoading } = useAuth();
+  const { language, tr } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [showPinHelp, setShowPinHelp] = useState(false);
@@ -56,19 +58,19 @@ function LoginForm() {
     }
 
     if (searchParams.get("pending_ad") === "true" && !pendingAdToken) {
-      toast("Tem um anúncio guardado. Entre para concluir a publicação.");
+      toast(tr("Tem um anúncio guardado. Entre para concluir a publicação.", "You have a saved listing. Sign in to publish it."));
     }
-  }, [searchParams]);
+  }, [searchParams, tr]);
 
   const fullNumber = `${formData.country_code}${formData.mobile_number}`;
 
   const validatePhone = () => {
     if (!formData.mobile_number.trim()) {
-      toast.error("Indique o seu número de telefone");
+      toast.error(tr("Indique o seu número de telefone", "Enter your phone number"));
       return false;
     }
     if (formData.mobile_number.trim().length < 6) {
-      toast.error("Indique um número de telefone válido");
+      toast.error(tr("Indique um número de telefone válido", "Enter a valid phone number"));
       return false;
     }
     return true;
@@ -78,7 +80,7 @@ function LoginForm() {
     event.preventDefault();
     if (!validatePhone()) return;
     if (formData.pin.length !== 4) {
-      toast.error("O PIN deve ter 4 dígitos");
+      toast.error(tr("O PIN deve ter 4 dígitos", "The PIN must contain 4 digits"));
       return;
     }
 
@@ -98,10 +100,10 @@ function LoginForm() {
     setIsResending(true);
     try {
       await resendPin(fullNumber);
-      toast.success("PIN reenviado por SMS");
+      toast.success(tr("PIN reenviado por SMS", "PIN sent again by SMS"));
     } catch (error) {
       const apiError = error as { response?: { data?: { error?: string } } };
-      toast.error(apiError.response?.data?.error || "Não foi possível reenviar o PIN");
+      toast.error(apiError.response?.data?.error || tr("Não foi possível reenviar o PIN", "Unable to resend the PIN"));
     } finally {
       setIsResending(false);
     }
@@ -111,11 +113,11 @@ function LoginForm() {
     localStorage.removeItem("pending_ad_token");
     localStorage.removeItem("pending_ad_data");
     setPendingAd(null);
-    toast.success("Rascunho descartado");
+    toast.success(tr("Rascunho descartado", "Draft discarded"));
   };
 
   const pendingDate = pendingAd
-    ? new Date(pendingAd.created_at).toLocaleDateString("pt-PT", {
+    ? new Date(pendingAd.created_at).toLocaleDateString(language === "en" ? "en-GB" : "pt-PT", {
         day: "2-digit",
         month: "short",
         year: "numeric",
@@ -126,21 +128,21 @@ function LoginForm() {
 
   return (
     <AuthShell
-      eyebrow="Bem-vindo de volta"
-      title={pendingAd ? "Entre para publicar" : "Entrar na conta"}
+      eyebrow={tr("Bem-vindo de volta", "Welcome back")}
+      title={pendingAd ? tr("Entre para publicar", "Sign in to publish") : tr("Entrar na conta", "Sign in")}
       description={
         pendingAd
-          ? `O rascunho “${pendingAd.product_name}” está pronto para ser associado à sua conta.`
-          : "Use o seu número de telefone e o PIN recebido por SMS."
+          ? tr(`O rascunho “${pendingAd.product_name}” está pronto para ser associado à sua conta.`, `The draft “${pendingAd.product_name}” is ready to be linked to your account.`)
+          : tr("Use o seu número de telefone e o PIN recebido por SMS.", "Use your phone number and the PIN received by SMS.")
       }
     >
       {pendingAd && (
         <div className="mb-6 border-l-4 border-[#e7492f] bg-[#fff5ef] px-4 py-3">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-black text-[#0b2f27]">Rascunho encontrado</p>
+              <p className="text-sm font-black text-[#0b2f27]">{tr("Rascunho encontrado", "Draft found")}</p>
               <p className="mt-1 text-xs leading-5 text-[#6d594f]">
-                {pendingAd.product_name} · guardado em {pendingDate}
+                {pendingAd.product_name} · {tr("guardado em", "saved on")} {pendingDate}
               </p>
             </div>
             <button
@@ -148,7 +150,7 @@ function LoginForm() {
               onClick={handleClearPendingAd}
               className="shrink-0 text-xs font-bold text-[#a33a2a] hover:text-[#7f2e22]"
             >
-              Descartar
+              {tr("Descartar", "Discard")}
             </button>
           </div>
         </div>
@@ -170,7 +172,7 @@ function LoginForm() {
         <div>
           <div className="flex items-center justify-between gap-3">
             <label htmlFor="login-pin" className="market-label">
-              PIN de 4 dígitos <span className="text-[#e7492f]">*</span>
+              {tr("PIN de 4 dígitos", "4-digit PIN")} <span className="text-[#e7492f]">*</span>
             </label>
             <button
               type="button"
@@ -178,7 +180,7 @@ function LoginForm() {
               className="text-xs font-bold text-[#0b6a4c] hover:text-[#e7492f]"
               aria-expanded={showPinHelp}
             >
-              {showPinHelp ? "Fechar ajuda" : "O que é o PIN?"}
+              {showPinHelp ? tr("Fechar ajuda", "Close help") : tr("O que é o PIN?", "What is the PIN?")}
             </button>
           </div>
           <input
@@ -200,7 +202,7 @@ function LoginForm() {
           />
           {showPinHelp && (
             <div className="mt-3 border-l-2 border-[#0b8a5f] bg-[#eef8f1] px-4 py-3 text-xs leading-5 text-[#52685f]">
-              O PIN é enviado por SMS quando cria a conta. Se não o recebeu, confirme o número e solicite um novo envio.
+              {tr("O PIN é enviado por SMS quando cria a conta. Se não o recebeu, confirme o número e solicite um novo envio.", "The PIN is sent by SMS when you create your account. If it did not arrive, check the number and request a new one.")}
             </div>
           )}
           <div className="mt-3 text-right">
@@ -210,7 +212,7 @@ function LoginForm() {
               disabled={isResending}
               className="text-xs font-bold text-[#0b6a4c] hover:text-[#e7492f] disabled:opacity-50"
             >
-              {isResending ? "A reenviar..." : "Não recebeu? Reenviar PIN"}
+              {isResending ? tr("A reenviar...", "Resending...") : tr("Não recebeu? Reenviar PIN", "Did not receive it? Resend PIN")}
             </button>
           </div>
         </div>
@@ -223,25 +225,25 @@ function LoginForm() {
           {(isSubmitting || authLoading) && <Spinner />}
           {isSubmitting || authLoading
             ? pendingAd
-              ? "A publicar anúncio..."
-              : "A entrar..."
+              ? tr("A publicar anúncio...", "Publishing listing...")
+              : tr("A entrar...", "Signing in...")
             : pendingAd
-              ? "Publicar anúncio e entrar"
-              : "Entrar"}
+              ? tr("Publicar anúncio e entrar", "Publish listing and sign in")
+              : tr("Entrar", "Sign in")}
         </button>
       </form>
 
       <div className="mt-6 border-t border-[#edf4ef] pt-5 text-center text-sm text-[#52685f]">
-        Ainda não tem conta?{" "}
+        {tr("Ainda não tem conta?", "Do not have an account yet?")}{" "}
         <Link href="/auth/register" className="font-black text-[#0b6a4c] hover:text-[#e7492f]">
-          Criar conta
+          {tr("Criar conta", "Create account")}
         </Link>
       </div>
       <Link
         href="/ads/create"
         className="mt-4 inline-flex w-full items-center justify-center text-sm font-bold text-[#6d8179] hover:text-[#0b3b2f]"
       >
-        Continuar sem entrar
+        {tr("Continuar sem entrar", "Continue without signing in")}
       </Link>
     </AuthShell>
   );

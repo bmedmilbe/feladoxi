@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AuthShellProps {
   eyebrow: string;
@@ -11,15 +12,21 @@ interface AuthShellProps {
 const accountBenefits = [
   {
     title: "Anúncios num só lugar",
+    titleEn: "Listings in one place",
     description: "Publique, atualize e acompanhe a sua vitrine com clareza.",
+    descriptionEn: "Publish, update and manage your listings with clarity.",
   },
   {
     title: "Contacto direto",
+    titleEn: "Direct contact",
     description: "Converse com compradores e vendedores pelo WhatsApp.",
+    descriptionEn: "Talk to buyers and sellers through WhatsApp.",
   },
   {
     title: "Feito para São Tomé",
+    titleEn: "Made for São Tomé",
     description: "Distritos, preços em dobras e produtos da comunidade.",
+    descriptionEn: "Districts, prices in dobras and products from the community.",
   },
 ];
 
@@ -46,6 +53,7 @@ function MarketMark() {
 }
 
 export function AuthShell({ eyebrow, title, description, children }: AuthShellProps) {
+  const { tr } = useLanguage();
   return (
     <div className="bg-[#f4fbf6] px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
       <div className="mx-auto grid min-h-[640px] max-w-[1180px] overflow-hidden rounded-lg border border-[#d8e7dc] bg-white shadow-[0_24px_60px_rgba(14,42,35,0.1)] lg:grid-cols-[0.88fr_1.12fr]">
@@ -57,13 +65,13 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
             </Link>
 
             <p className="mt-10 text-xs font-black uppercase tracking-[0.18em] text-[#ffb199]">
-              Conta Mercado STP
+              {tr("Conta Mercado STP", "Mercado STP account")}
             </p>
             <h2 className="mt-3 max-w-md font-serif text-3xl font-semibold leading-tight sm:text-4xl">
-              O mercado local também cabe no seu telemóvel.
+              {tr("O mercado local também cabe no seu telemóvel.", "The local marketplace also fits on your phone.")}
             </h2>
             <p className="mt-4 max-w-md text-sm leading-7 text-[#dff6ea]">
-              Entre com o seu número e mantenha compras, anúncios e contactos organizados.
+              {tr("Entre com o seu número e mantenha compras, anúncios e contactos organizados.", "Sign in with your number and keep listings and contacts organised.")}
             </p>
           </div>
 
@@ -74,8 +82,8 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
                   {index + 1}
                 </span>
                 <div>
-                  <h3 className="text-sm font-black">{benefit.title}</h3>
-                  <p className="mt-1 text-xs leading-5 text-[#cce8da]">{benefit.description}</p>
+                  <h3 className="text-sm font-black">{tr(benefit.title, benefit.titleEn)}</h3>
+                  <p className="mt-1 text-xs leading-5 text-[#cce8da]">{tr(benefit.description, benefit.descriptionEn)}</p>
                 </div>
               </div>
             ))}

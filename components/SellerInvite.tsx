@@ -1,19 +1,26 @@
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 const sellerSteps = [
   {
     title: "Fotografe",
+    titleEn: "Photograph",
     description: "Apresente o produto com imagens nítidas e detalhes importantes.",
+    descriptionEn: "Show the product with clear images and important details.",
     icon: "camera",
   },
   {
     title: "Publique",
+    titleEn: "Publish",
     description: "Adicione nome, categoria, preço e o seu contacto.",
+    descriptionEn: "Add a name, category, price and your contact details.",
     icon: "publish",
   },
   {
     title: "Converse",
+    titleEn: "Chat",
     description: "Receba interessados e negocie diretamente pelo WhatsApp.",
+    descriptionEn: "Receive enquiries and negotiate directly through WhatsApp.",
     icon: "chat",
   },
 ];
@@ -53,27 +60,28 @@ function StepIcon({ name }: { name: string }) {
 }
 
 export function SellerInvite() {
+  const { tr } = useLanguage();
   return (
     <section id="vender" className="relative left-1/2 right-1/2 mt-14 w-screen -translate-x-1/2 border-y border-[#cfe3ea] bg-[#eef8fa]">
       <div className="mx-auto grid max-w-[1536px] gap-8 px-4 py-10 sm:px-6 sm:py-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-12 lg:px-8 lg:py-14">
         <div className="max-w-xl">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[#078b8d]">
-            Vender no Mercado STP
+            {tr("Vender no Mercado STP", "Sell on Mercado STP")}
           </p>
           <h2 className="mt-3 text-3xl font-black leading-tight text-[#082f4f] sm:text-4xl">
-            Transforme o que tem numa nova oportunidade.
+            {tr("Transforme o que tem numa nova oportunidade.", "Turn what you have into a new opportunity.")}
           </h2>
           <p className="mt-4 text-sm leading-7 text-[#516f82] sm:text-base">
-            Crie o anúncio, mostre o produto e fale diretamente com compradores interessados em São Tomé e Príncipe.
+            {tr("Crie o anúncio, mostre o produto e fale diretamente com compradores interessados em São Tomé e Príncipe.", "Create a listing, show your product and speak directly with interested buyers in São Tomé and Príncipe.")}
           </p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link href="/ads/create" className="inline-flex h-12 items-center justify-center gap-3 rounded-md bg-[#ffd23f] px-6 text-sm font-black text-[#082f4f] shadow-[0_10px_22px_rgba(7,52,79,0.10)] transition hover:bg-[#ffe071]">
-              Anunciar produto
+              {tr("Anunciar produto", "List a product")}
               <ArrowIcon />
             </Link>
             <Link href="/my-ads" className="inline-flex h-12 items-center justify-center rounded-md border border-[#9fc6d3] bg-white px-6 text-sm font-black text-[#082f4f] transition hover:border-[#08a6a6] hover:bg-[#e4f7f7]">
-              Os meus anúncios
+              {tr("Os meus anúncios", "My listings")}
             </Link>
           </div>
         </div>
@@ -87,8 +95,8 @@ export function SellerInvite() {
                 </span>
                 <span className="text-xs font-black text-[#8aa2b0]">0{index + 1}</span>
               </div>
-              <h3 className="mt-5 text-lg font-black text-[#082f4f]">{step.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#657d8d]">{step.description}</p>
+              <h3 className="mt-5 text-lg font-black text-[#082f4f]">{tr(step.title, step.titleEn)}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#657d8d]">{tr(step.description, step.descriptionEn)}</p>
             </li>
           ))}
         </ol>

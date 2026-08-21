@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   fetchAd,
   fetchCategories,
@@ -45,6 +46,7 @@ export default function EditAdPage() {
   const id = Number(params.id);
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { language, tr, categoryName } = useLanguage();
   const previewUrlsRef = useRef<string[]>([]);
 
   const [formData, setFormData] = useState({
@@ -56,7 +58,7 @@ export default function EditAdPage() {
   const [newImages, setNewImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("A atualizar anúncio...");
+  const [submitMessage, setSubmitMessage] = useState(tr("A atualizar anúncio...", "Updating listing..."));
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -103,7 +105,7 @@ export default function EditAdPage() {
       const remainingSlots = Math.max(0, maxImages - currentCount);
 
       if (remainingSlots === 0) {
-        toast.error(`O anúncio pode ter no máximo ${maxImages} fotografias`);
+        toast.error(tr(`O anúncio pode ter no máximo ${maxImages} fotografias`, `A listing can have up to ${maxImages} photos`));
         return;
       }
 
@@ -114,10 +116,10 @@ export default function EditAdPage() {
       setImagePreviews((current) => [...current, ...previewsToAdd]);
 
       if (acceptedFiles.length > remainingSlots) {
-        toast.error(`Foram adicionadas apenas ${remainingSlots} fotografias`);
+        toast.error(tr(`Foram adicionadas apenas ${remainingSlots} fotografias`, `Only ${remainingSlots} photos were added`));
       }
     },
-    [ad?.images?.length, newImages.length],
+    [ad?.images?.length, newImages.length, tr],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -128,7 +130,7 @@ export default function EditAdPage() {
     maxFiles: maxImages,
     maxSize: maxImageSizeMb * 1024 * 1024,
     onDropRejected: () => {
-      toast.error(`Use imagens JPG, PNG ou WEBP até ${maxImageSizeMb}MB`);
+      toast.error(tr(`Use imagens JPG, PNG ou WEBP até ${maxImageSizeMb}MB`, `Use JPG, PNG or WEBP images up to ${maxImageSizeMb}MB`));
     },
   });
 
@@ -154,12 +156,12 @@ export default function EditAdPage() {
     if (!ad) return;
 
     if (!formData.product_name.trim() || !formData.category) {
-      toast.error("Preencha o nome e a categoria do produto");
+      toast.error(tr("Preencha o nome e a categoria do produto", "Enter the product name and category"));
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("A atualizar anúncio...");
+    setSubmitMessage(tr("A atualizar anúncio...", "Updating listing..."));
 
     try {
       const submitData = new FormData();
@@ -174,7 +176,7 @@ export default function EditAdPage() {
 
       const existingImageCount = ad.images?.length || 0;
       for (let index = 0; index < newImages.length; index += 1) {
-        setSubmitMessage(`A enviar foto ${index + 1} de ${newImages.length}...`);
+        setSubmitMessage(tr(`A enviar foto ${index + 1} de ${newImages.length}...`, `Uploading photo ${index + 1} of ${newImages.length}...`));
         await uploadAdImage(id, newImages[index], existingImageCount + index);
       }
 
@@ -182,8 +184,8 @@ export default function EditAdPage() {
       await queryClient.invalidateQueries({ queryKey: ["my-ads"] });
       toast.success(
         newImages.length > 0
-          ? "Anúncio e fotografias atualizados com sucesso!"
-          : "Anúncio atualizado com sucesso!",
+          ? tr("Anúncio e fotografias atualizados com sucesso!", "Listing and photos updated successfully!")
+          : tr("Anúncio atualizado com sucesso!", "Listing updated successfully!"),
       );
       router.push("/my-ads");
     } catch (error: any) {
@@ -191,7 +193,7 @@ export default function EditAdPage() {
       const message =
         responseData?.error ||
         responseData?.image?.[0] ||
-        "Não foi possível atualizar o anúncio";
+        tr("Não foi possível atualizar o anúncio", "Unable to update the listing");
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -211,9 +213,9 @@ export default function EditAdPage() {
   if (isError || !ad) {
     return (
       <EmptyState
-        title="Anúncio não encontrado"
-        description="Este anúncio não existe ou já foi removido."
-        actionText="Ver os meus anúncios"
+        title={tr("Anúncio não encontrado", "Listing not found")}
+        description={tr("Este anúncio não existe ou já foi removido.", "This listing does not exist or has already been removed.")}
+        actionText={tr("Ver os meus anúncios", "View my listings")}
         actionLink="/my-ads"
       />
     );
@@ -227,13 +229,13 @@ export default function EditAdPage() {
       <section className="border-b border-[#d8e7dc] bg-white">
         <div className="mx-auto max-w-[1440px] px-4 py-9 sm:px-6 lg:px-10">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-[#e7492f]">
-            Gerir anúncio
+            {tr("Gerir anúncio", "Manage listing")}
           </p>
           <h1 className="mt-3 font-serif text-4xl font-semibold text-[#07382d] sm:text-5xl">
-            Editar produto
+            {tr("Editar produto", "Edit product")}
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-[#52685f]">
-            Atualize os dados e mantenha fotografias claras para o comprador.
+            {tr("Atualize os dados e mantenha fotografias claras para o comprador.", "Update the details and keep the photos clear for buyers.")}
           </p>
         </div>
       </section>
@@ -245,16 +247,16 @@ export default function EditAdPage() {
         >
           <section>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">
-              Informações
+              {tr("Informações", "Information")}
             </p>
             <h2 className="mt-2 text-xl font-black text-[#0b2f27]">
-              Dados do produto
+              {tr("Dados do produto", "Product details")}
             </h2>
 
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               <div className="min-w-0 md:col-span-2">
                 <label htmlFor="product_name" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
-                  Nome do produto
+                  {tr("Nome do produto", "Product name")}
                 </label>
                 <input
                   id="product_name"
@@ -267,7 +269,7 @@ export default function EditAdPage() {
 
               <div className="min-w-0">
                 <label htmlFor="category" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
-                  Categoria
+                  {tr("Categoria", "Category")}
                 </label>
                 <select
                   id="category"
@@ -276,10 +278,10 @@ export default function EditAdPage() {
                   onChange={(event) => setFormData((current) => ({ ...current, category: event.target.value }))}
                   className={fieldClass}
                 >
-                  <option value="">Selecione uma categoria</option>
+                  <option value="">{tr("Selecione uma categoria", "Select a category")}</option>
                   {categories?.results?.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name}
+                      {categoryName(category.slug, category.name)}
                     </option>
                   ))}
                 </select>
@@ -287,7 +289,7 @@ export default function EditAdPage() {
 
               <div className="min-w-0">
                 <label htmlFor="price" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
-                  Preço em STN
+                  {tr("Preço em STN", "Price in STN")}
                 </label>
                 <input
                   id="price"
@@ -303,7 +305,7 @@ export default function EditAdPage() {
 
               <div className="min-w-0 md:col-span-2">
                 <label htmlFor="description" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
-                  Descrição
+                  {tr("Descrição", "Description")}
                 </label>
                 <textarea
                   id="description"
@@ -318,11 +320,11 @@ export default function EditAdPage() {
           <section className="mt-7 border-t border-[#edf4ef] pt-7">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">Galeria</p>
-                <h2 className="mt-2 text-xl font-black text-[#0b2f27]">Fotografias do produto</h2>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">{tr("Galeria", "Gallery")}</p>
+                <h2 className="mt-2 text-xl font-black text-[#0b2f27]">{tr("Fotografias do produto", "Product photos")}</h2>
               </div>
               <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">
-                {totalImageCount} de {maxImages}
+                {totalImageCount} {tr("de", "of")} {maxImages}
               </span>
             </div>
 
@@ -332,20 +334,20 @@ export default function EditAdPage() {
                   <div key={image.id} className="relative aspect-square overflow-hidden rounded-lg border border-[#d8e7dc] bg-[#edf7f1]">
                     <Image
                       src={image.image_url}
-                      alt={`${ad.product_name} - fotografia ${index + 1}`}
+                      alt={`${ad.product_name} - ${tr("fotografia", "photo")} ${index + 1}`}
                       fill
                       className="object-contain"
                       sizes="(max-width: 640px) 50vw, 220px"
                     />
                     {index === 0 && (
-                      <span className="absolute bottom-2 left-2 rounded-md bg-[#0b2f27] px-2 py-1 text-xs font-bold text-white">Principal</span>
+                      <span className="absolute bottom-2 left-2 rounded-md bg-[#0b2f27] px-2 py-1 text-xs font-bold text-white">{tr("Principal", "Main")}</span>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
               <div className="mt-5 rounded-lg border border-dashed border-[#cfe2d5] bg-[#f8fcf9] px-4 py-5 text-sm leading-6 text-[#52685f]">
-                Este anúncio ainda não tem fotografias guardadas. Adicione uma para que o produto apareça corretamente na vitrine.
+                {tr("Este anúncio ainda não tem fotografias guardadas. Adicione uma para que o produto apareça corretamente na vitrine.", "This listing has no saved photos yet. Add one so the product appears correctly in the marketplace.")}
               </div>
             )}
 
@@ -356,15 +358,15 @@ export default function EditAdPage() {
                     <div
                       className="h-full w-full bg-cover bg-center"
                       style={{ backgroundImage: `url(${preview})` }}
-                      aria-label={`Nova fotografia ${index + 1}`}
+                      aria-label={`${tr("Nova fotografia", "New photo")} ${index + 1}`}
                       role="img"
                     />
-                    <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-bold text-[#0b3b2f] shadow-sm">Nova</span>
+                    <span className="absolute left-2 top-2 rounded-md bg-white px-2 py-1 text-xs font-bold text-[#0b3b2f] shadow-sm">{tr("Nova", "New")}</span>
                     <button
                       type="button"
                       onClick={() => removeNewImage(index)}
                       className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white text-lg font-bold text-[#a33a2a] shadow-sm"
-                      aria-label={`Remover nova fotografia ${index + 1}`}
+                      aria-label={`${tr("Remover nova fotografia", "Remove new photo")} ${index + 1}`}
                     >
                       &times;
                     </button>
@@ -382,9 +384,9 @@ export default function EditAdPage() {
               >
                 <input {...getInputProps()} />
                 <p className="text-sm font-bold text-[#0b2f27]">
-                  {isDragActive ? "Solte as fotografias aqui" : "Clique ou arraste para adicionar fotografias"}
+                  {isDragActive ? tr("Solte as fotografias aqui", "Drop the photos here") : tr("Clique ou arraste para adicionar fotografias", "Click or drag to add photos")}
                 </p>
-                <p className="mt-1 text-xs text-[#6d8179]">JPG, PNG ou WEBP, até {maxImageSizeMb}MB por ficheiro</p>
+                <p className="mt-1 text-xs text-[#6d8179]">{tr(`JPG, PNG ou WEBP, até ${maxImageSizeMb}MB por ficheiro`, `JPG, PNG or WEBP, up to ${maxImageSizeMb}MB per file`)}</p>
               </div>
             )}
           </section>
@@ -395,30 +397,30 @@ export default function EditAdPage() {
               disabled={isSubmitting}
               className="inline-flex h-12 flex-1 items-center justify-center rounded-md bg-[#e7492f] px-6 text-sm font-bold text-white transition hover:bg-[#c83e27] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? submitMessage : "Guardar alterações"}
+              {isSubmitting ? submitMessage : tr("Guardar alterações", "Save changes")}
             </button>
             <Link href="/my-ads" className="inline-flex h-12 items-center justify-center rounded-md border border-[#cfe2d5] px-6 text-sm font-bold text-[#0b3b2f] transition hover:bg-[#e7f5ee]">
-              Cancelar
+              {tr("Cancelar", "Cancel")}
             </Link>
           </div>
         </form>
 
         <aside className="space-y-4">
           <div className="rounded-lg border border-[#d8e7dc] bg-white p-5 shadow-[0_14px_34px_rgba(14,42,35,0.08)]">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">Estado atual</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">{tr("Estado atual", "Current status")}</p>
             <div className="mt-4 flex items-center justify-between gap-3">
-              <span className="text-sm font-bold text-[#0b2f27]">Publicação</span>
-              <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">{statusLabels[ad.status]}</span>
+              <span className="text-sm font-bold text-[#0b2f27]">{tr("Publicação", "Publication")}</span>
+              <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">{language === "en" ? ({ ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Expired" } as Record<string, string>)[ad.status] : statusLabels[ad.status]}</span>
             </div>
             <p className="mt-4 text-sm leading-6 text-[#52685f]">
-              Expira em {new Date(ad.expires_at).toLocaleDateString("pt-PT")}.
+              {tr("Expira em", "Expires on")} {new Date(ad.expires_at).toLocaleDateString(language === "en" ? "en-GB" : "pt-PT")}.
             </p>
           </div>
 
           <div className="rounded-lg bg-[#0b2f27] p-5 text-white shadow-[0_18px_45px_rgba(14,42,35,0.16)]">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffb199]">Fotografias</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#ffb199]">{tr("Fotografias", "Photos")}</p>
             <p className="mt-3 text-sm leading-7 text-[#e7fff3]">
-              A primeira imagem guardada é usada como fotografia principal do produto na vitrine.
+              {tr("A primeira imagem guardada é usada como fotografia principal do produto na vitrine.", "The first saved image is used as the product's main marketplace photo.")}
             </p>
           </div>
         </aside>

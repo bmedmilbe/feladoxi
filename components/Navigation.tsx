@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { fetchCategories } from "@/lib/api";
 import type { ApiResponse, Category } from "@/types";
+import { useLanguage, type Language } from "@/context/LanguageContext";
 import {
   SearchAutocomplete,
   type SearchSuggestion,
@@ -169,6 +170,7 @@ export default function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, logout, hasPendingAd } = useAuth();
+  const { language, setLanguage, tr, categoryName } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreCategoriesOpen, setMoreCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -221,13 +223,17 @@ export default function Navigation() {
         <div className="hidden bg-[#effbfc] md:block">
           <div className="mx-auto flex h-10 max-w-[1536px] items-center justify-between px-6 text-xs font-semibold lg:px-8">
             <div className="flex items-center gap-7">
-              <span className="inline-flex items-center gap-2"><LocationIcon /> Compra e venda em todo São Tomé e Príncipe</span>
-              <span className="inline-flex items-center gap-2 border-l border-[#bad5df] pl-7"><WhatsAppIcon /> Contacto direto com o fornecedor</span>
+              <span className="inline-flex items-center gap-2"><LocationIcon /> {tr("Compra e venda em todo São Tomé e Príncipe", "Buy and sell across São Tomé and Príncipe")}</span>
+              <span className="inline-flex items-center gap-2 border-l border-[#bad5df] pl-7"><WhatsAppIcon /> {tr("Contacto direto com o fornecedor", "Direct contact with the seller")}</span>
             </div>
             <div className="flex items-center gap-5 text-[#37566c]">
-              <Link href="/help" className="hover:text-[#079c9f]">Ajuda</Link>
-              <Link href="/about" className="hover:text-[#079c9f]">Sobre nós</Link>
-              <span>Português</span>
+              <Link href="/help" className="hover:text-[#079c9f]">{tr("Ajuda", "Help")}</Link>
+              <Link href="/about" className="hover:text-[#079c9f]">{tr("Sobre nós", "About us")}</Link>
+              <Link href="/advertise" className="hover:text-[#079c9f]">{tr("Publicidade", "Advertising")}</Link>
+              <select value={language} onChange={(event) => setLanguage(event.target.value as Language)} className="bg-transparent font-semibold outline-none" aria-label={tr("Selecionar idioma", "Select language")}>
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+              </select>
             </div>
           </div>
         </div>
@@ -237,46 +243,46 @@ export default function Navigation() {
             <Link href="/" className="shrink-0" aria-label="Mercado STP"><BrandMark /></Link>
 
             <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 sm:block">
-              <label className="sr-only" htmlFor="nav-search">Pesquisar produtos</label>
+              <label className="sr-only" htmlFor="nav-search">{tr("Pesquisar produtos", "Search products")}</label>
               <div className="relative mx-auto max-w-[760px]">
-                <SearchAutocomplete id="nav-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder="Pesquisar produtos, marcas e categorias..." inputClassName="h-14 w-full rounded-full border border-[#174f70] bg-white pl-14 pr-20 text-sm text-[#082f4f] outline-none transition placeholder:text-[#758796] focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-6" />
+                <SearchAutocomplete id="nav-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Pesquisar produtos, marcas e categorias...", "Search products, brands and categories...")} inputClassName="h-14 w-full rounded-full border border-[#174f70] bg-white pl-14 pr-20 text-sm text-[#082f4f] outline-none transition placeholder:text-[#758796] focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-6" />
                 <button type="submit" className="absolute right-1.5 top-1.5 z-20 grid h-11 w-14 place-items-center rounded-full bg-[#09a5a6] text-white transition hover:bg-[#078b8d]" aria-label="Pesquisar"><SearchIcon /></button>
               </div>
             </form>
 
             <div className="ml-auto hidden items-center gap-1 lg:flex">
-              <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isAccountPage ? "text-[#079c9f]" : ""}`} aria-current={isAccountPage ? "page" : undefined}><UserIcon /><span>Minha conta</span></Link>
-              <Link href="/?featured=true#produtos" className="inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f]"><HeartIcon /><span>Favoritos</span></Link>
-              <Link href="/ads/create" className={`ml-2 inline-flex h-11 items-center rounded-md bg-[#ffd23f] px-5 text-sm font-black text-[#082f4f] transition hover:bg-[#f4c428] ${isCreatePage ? "ring-2 ring-[#079c9f] ring-offset-2" : ""}`}>Vender</Link>
+              <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isAccountPage ? "text-[#079c9f]" : ""}`} aria-current={isAccountPage ? "page" : undefined}><UserIcon /><span>{tr("Minha conta", "My account")}</span></Link>
+              <Link href="/?featured=true#produtos" className="inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f]"><HeartIcon /><span>{tr("Favoritos", "Favourites")}</span></Link>
+              <Link href="/ads/create" className={`ml-2 inline-flex h-11 items-center rounded-md bg-[#ffd23f] px-5 text-sm font-black text-[#082f4f] transition hover:bg-[#f4c428] ${isCreatePage ? "ring-2 ring-[#079c9f] ring-offset-2" : ""}`}>{tr("Vender", "Sell")}</Link>
             </div>
 
             <button type="button" onClick={() => { setMobileMenuOpen((open) => !open); setMoreCategoriesOpen(false); }} className="ml-auto grid h-11 w-11 place-items-center rounded-md border border-[#c8dde5] text-[#082f4f] lg:hidden" aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={mobileMenuOpen}><MenuIcon open={mobileMenuOpen} /></button>
           </div>
 
           <form onSubmit={submitSearch} className="pb-3 sm:hidden">
-            <label className="sr-only" htmlFor="mobile-search">Pesquisar produtos</label>
+            <label className="sr-only" htmlFor="mobile-search">{tr("Pesquisar produtos", "Search products")}</label>
             <div className="relative">
-              <SearchAutocomplete id="mobile-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder="Pesquisar produtos e categorias..." inputClassName="h-12 w-full rounded-full border border-[#174f70] bg-white pl-12 pr-16 text-sm outline-none focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-4" />
+              <SearchAutocomplete id="mobile-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Pesquisar produtos e categorias...", "Search products and categories...")} inputClassName="h-12 w-full rounded-full border border-[#174f70] bg-white pl-12 pr-16 text-sm outline-none focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-4" />
               <button type="submit" className="absolute right-1 top-1 z-20 grid h-10 w-12 place-items-center rounded-full bg-[#09a5a6] text-white" aria-label="Pesquisar"><SearchIcon className="h-5 w-5" /></button>
             </div>
           </form>
 
           <div className="hidden items-center border-t border-[#e5eff3] sm:flex">
             <nav className="flex h-[58px] min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Categorias do mercado">
-              <Link href="/#categorias" onClick={() => { setActiveCategory(""); setMoreCategoriesOpen(false); }} className={`mr-3 inline-flex h-11 shrink-0 items-center gap-2 rounded-md px-4 text-sm font-bold transition ${!activeCategory ? "bg-[#09a5a6] text-white" : "bg-[#eefafa] text-[#087f82] hover:bg-[#dff5f5]"}`}><GridIcon /> Todas as categorias</Link>
+              <Link href="/#categorias" onClick={() => { setActiveCategory(""); setMoreCategoriesOpen(false); }} className={`mr-3 inline-flex h-11 shrink-0 items-center gap-2 rounded-md px-4 text-sm font-bold transition ${!activeCategory ? "bg-[#09a5a6] text-white" : "bg-[#eefafa] text-[#087f82] hover:bg-[#dff5f5]"}`}><GridIcon /> {tr("Todas as categorias", "All categories")}</Link>
               {visibleCategoryLinks.map((category, index) => {
                 const isActive = activeCategory === category.slug;
                 return (
                   <Link key={category.id} href={`/?category=${encodeURIComponent(category.slug)}#produtos`} onClick={() => { setActiveCategory(category.slug); setMoreCategoriesOpen(false); }} className={`inline-flex h-11 shrink-0 items-center gap-2 px-3 text-sm font-semibold transition ${isActive ? "text-[#079c9f]" : "text-[#183e58] hover:text-[#079c9f]"}`} aria-current={isActive ? "page" : undefined}>
-                    <CategoryIcon slug={category.slug} index={index} /><span>{category.name}</span>
+                    <CategoryIcon slug={category.slug} index={index} /><span>{categoryName(category.slug, category.name)}</span>
                   </Link>
                 );
               })}
             </nav>
             {remainingCategoryLinks.length > 0 && (
               <button type="button" onClick={() => { setMoreCategoriesOpen((open) => !open); setMobileMenuOpen(false); }} className={`ml-2 inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 text-xs font-black transition sm:text-sm ${moreCategoriesOpen ? "bg-[#082f4f] text-white" : "bg-[#eefafa] text-[#087f82] hover:bg-[#dff5f5]"}`} aria-expanded={moreCategoriesOpen} aria-controls="more-categories-menu">
-                <span className="hidden min-[430px]:inline">Mostrar mais</span>
-                <span className="min-[430px]:hidden">Mais</span>
+                <span className="hidden min-[430px]:inline">{tr("Mostrar mais", "Show more")}</span>
+                <span className="min-[430px]:hidden">{tr("Mais", "More")}</span>
                 <ChevronIcon open={moreCategoriesOpen} />
               </button>
             )}
@@ -290,7 +296,7 @@ export default function Navigation() {
                 return (
                   <Link key={category.id} href={`/?category=${encodeURIComponent(category.slug)}#produtos`} onClick={() => { setActiveCategory(category.slug); setMoreCategoriesOpen(false); }} className={`inline-flex min-h-11 min-w-0 items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold transition ${isActive ? "bg-[#082f4f] text-white" : "bg-[#f5fafb] text-[#183e58] hover:bg-[#e4f7f7] hover:text-[#078b8d]"}`}>
                     <span className="shrink-0"><CategoryIcon slug={category.slug} index={categoryIndex} /></span>
-                    <span className="truncate">{category.name}</span>
+                    <span className="truncate">{categoryName(category.slug, category.name)}</span>
                   </Link>
                 );
               })}
@@ -300,10 +306,15 @@ export default function Navigation() {
           {mobileMenuOpen && (
             <div className="border-t border-[#dceaf0] pb-4 pt-3 lg:hidden">
               <div className="grid gap-2 sm:grid-cols-2">
-                <Link href="/ads/create" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#ffd23f] px-4 text-sm font-black text-[#082f4f]">{hasPendingAd ? "Publicar rascunho" : "Começar a vender"}</Link>
-                <Link href="/help" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#effbfc] px-4 text-sm font-semibold">Ajuda</Link>
-                <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#effbfc] px-4 text-sm font-semibold sm:col-span-2">Sobre nós</Link>
-                {isAuthenticated && <button type="button" onClick={() => { logout(); setMobileMenuOpen(false); }} className="h-11 rounded-md px-4 text-left text-sm font-semibold text-[#b23b30] sm:col-span-2">Sair</button>}
+                <Link href="/ads/create" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#ffd23f] px-4 text-sm font-black text-[#082f4f]">{hasPendingAd ? tr("Publicar rascunho", "Publish draft") : tr("Começar a vender", "Start selling")}</Link>
+                <Link href="/help" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#effbfc] px-4 text-sm font-semibold">{tr("Ajuda", "Help")}</Link>
+                <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#effbfc] px-4 text-sm font-semibold sm:col-span-2">{tr("Sobre nós", "About us")}</Link>
+                <Link href="/advertise" onClick={() => setMobileMenuOpen(false)} className="inline-flex h-11 items-center justify-center rounded-md bg-[#effbfc] px-4 text-sm font-semibold sm:col-span-2">{tr("Publicidade", "Advertising")}</Link>
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+                  <button type="button" onClick={() => setLanguage("pt")} className={`h-10 rounded-md text-sm font-bold ${language === "pt" ? "bg-[#082f4f] text-white" : "bg-[#effbfc]"}`}>Português</button>
+                  <button type="button" onClick={() => setLanguage("en")} className={`h-10 rounded-md text-sm font-bold ${language === "en" ? "bg-[#082f4f] text-white" : "bg-[#effbfc]"}`}>English</button>
+                </div>
+                {isAuthenticated && <button type="button" onClick={() => { logout(); setMobileMenuOpen(false); }} className="h-11 rounded-md px-4 text-left text-sm font-semibold text-[#b23b30] sm:col-span-2">{tr("Sair", "Sign out")}</button>}
               </div>
             </div>
           )}
@@ -311,11 +322,11 @@ export default function Navigation() {
       </header>
 
       <nav className="fixed inset-x-0 bottom-0 z-[60] grid h-[72px] grid-cols-5 border-t border-[#c8dde5] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_rgba(7,52,79,0.12)] backdrop-blur lg:hidden" aria-label="Ações principais">
-        <Link href="/#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><ProductIcon /><span className="max-w-full truncate">Produtos</span></Link>
-        <Link href="/#categorias" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><GridIcon /><span className="max-w-full truncate">Categorias</span></Link>
-        <Link href="/ads/create" className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-black sm:text-xs ${isCreatePage ? "text-[#078b8d]" : "text-[#082f4f]"}`} aria-current={isCreatePage ? "page" : undefined}><span className="grid h-8 w-8 place-items-center rounded-full bg-[#ffd23f]"><PlusIcon /></span><span className="max-w-full truncate">Anunciar</span></Link>
-        <Link href="/?featured=true#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><HeartIcon className="h-5 w-5" /><span className="max-w-full truncate">Favoritos</span></Link>
-        <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isAccountPage ? "text-[#079c9f]" : "text-[#183e58]"}`}><UserIcon className="h-5 w-5" /><span className="max-w-full truncate">Conta</span></Link>
+        <Link href="/#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><ProductIcon /><span className="max-w-full truncate">{tr("Produtos", "Products")}</span></Link>
+        <Link href="/#categorias" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><GridIcon /><span className="max-w-full truncate">{tr("Categorias", "Categories")}</span></Link>
+        <Link href="/ads/create" className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-black sm:text-xs ${isCreatePage ? "text-[#078b8d]" : "text-[#082f4f]"}`} aria-current={isCreatePage ? "page" : undefined}><span className="grid h-8 w-8 place-items-center rounded-full bg-[#ffd23f]"><PlusIcon /></span><span className="max-w-full truncate">{tr("Anunciar", "Advertise")}</span></Link>
+        <Link href="/?featured=true#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><HeartIcon className="h-5 w-5" /><span className="max-w-full truncate">{tr("Favoritos", "Favourites")}</span></Link>
+        <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isAccountPage ? "text-[#079c9f]" : "text-[#183e58]"}`}><UserIcon className="h-5 w-5" /><span className="max-w-full truncate">{tr("Conta", "Account")}</span></Link>
       </nav>
     </>
   );

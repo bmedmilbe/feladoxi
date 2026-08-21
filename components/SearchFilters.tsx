@@ -12,6 +12,7 @@ import {
   SearchAutocomplete,
   type SearchSuggestion,
 } from "@/components/SearchAutocomplete";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SearchFiltersProps {
   filters: FilterState;
@@ -54,6 +55,13 @@ export function SearchFilters({
   categories,
 }: SearchFiltersProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const { language, tr, categoryName } = useLanguage();
+  const englishConditionLabels: Record<string, string> = {
+    NEW: "New",
+    USED: "Used",
+    IMPORTED: "Imported",
+    LOCAL: "Made in São Tomé",
+  };
 
   const handleChange = (key: keyof FilterState, value: string) => {
     onFilterChange({ ...filters, [key]: value });
@@ -101,9 +109,9 @@ export function SearchFilters({
         aria-expanded={mobileFiltersOpen}
         aria-controls="product-filter-controls"
       >
-        <span className="inline-flex items-center gap-2"><FilterIcon /> Filtrar produtos</span>
+        <span className="inline-flex items-center gap-2"><FilterIcon /> {tr("Filtrar produtos", "Filter products")}</span>
         <span className="inline-flex items-center gap-2">
-          {hasActiveFilters && <span className="rounded-full bg-[#08a6a6] px-2 py-0.5 text-[10px] text-white">Ativos</span>}
+          {hasActiveFilters && <span className="rounded-full bg-[#08a6a6] px-2 py-0.5 text-[10px] text-white">{tr("Ativos", "Active")}</span>}
           <ChevronIcon open={mobileFiltersOpen} />
         </span>
       </button>
@@ -111,12 +119,12 @@ export function SearchFilters({
       <div id="product-filter-controls" className={`${mobileFiltersOpen ? "grid" : "hidden"} mt-3 grid-cols-1 gap-4 md:mt-0 md:grid md:grid-cols-2 xl:grid-cols-4`}>
         <div>
           <label htmlFor="filter-search" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
-            Pesquisa
+            {tr("Pesquisa", "Search")}
           </label>
           <div className="relative">
             <SearchAutocomplete
               id="filter-search"
-              placeholder="Pesquisar por nome..."
+              placeholder={tr("Pesquisar por nome...", "Search by name...")}
               value={filters.search}
               onChange={(value) => handleChange("search", value)}
               onSuggestionSelect={selectSuggestion}
@@ -138,7 +146,7 @@ export function SearchFilters({
 
         <div>
           <label htmlFor="category" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
-            Categoria
+            {tr("Categoria", "Category")}
           </label>
           <select
             id="category"
@@ -146,10 +154,10 @@ export function SearchFilters({
             onChange={(event) => handleChange("category", event.target.value)}
             className={controlClass}
           >
-            <option value="">Todas as categorias</option>
+            <option value="">{tr("Todas as categorias", "All categories")}</option>
             {categories.map((category) => (
               <option key={category.id} value={category.slug}>
-                {category.name}
+                {categoryName(category.slug, category.name)}
               </option>
             ))}
           </select>
@@ -157,7 +165,7 @@ export function SearchFilters({
 
         <div>
           <label htmlFor="district" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
-            Distrito
+            {tr("Distrito", "District")}
           </label>
           <select
             id="district"
@@ -165,10 +173,10 @@ export function SearchFilters({
             onChange={(event) => handleChange("district", event.target.value)}
             className={controlClass}
           >
-            <option value="">Todos os distritos</option>
+            <option value="">{tr("Todos os distritos", "All districts")}</option>
             {Object.entries(DistrictLabels).map(([key, label]) => (
               <option key={key} value={key}>
-                {label}
+                {language === "en" && key === "DIASPORA" ? "Diaspora" : label}
               </option>
             ))}
           </select>
@@ -176,7 +184,7 @@ export function SearchFilters({
 
         <div>
           <label htmlFor="condition" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
-            Condição
+            {tr("Condição", "Condition")}
           </label>
           <select
             id="condition"
@@ -184,10 +192,10 @@ export function SearchFilters({
             onChange={(event) => handleChange("condition", event.target.value)}
             className={controlClass}
           >
-            <option value="">Todas as condições</option>
+            <option value="">{tr("Todas as condições", "All conditions")}</option>
             {Object.entries(ConditionLabels).map(([key, label]) => (
               <option key={key} value={key}>
-                {label}
+                {language === "en" ? englishConditionLabels[key] || label : label}
               </option>
             ))}
           </select>
@@ -196,7 +204,7 @@ export function SearchFilters({
 
       <div className={`${mobileFiltersOpen ? "flex" : "hidden"} mt-4 flex-wrap items-center gap-2 md:flex`}>
         <span className="mr-1 text-xs font-black uppercase tracking-[0.14em] text-[#657d8d]">
-          Filtros rápidos
+          {tr("Filtros rápidos", "Quick filters")}
         </span>
         <button
           type="button"
@@ -207,7 +215,7 @@ export function SearchFilters({
               : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
           }`}
         >
-          Novo
+          {tr("Novo", "New")}
         </button>
         <button
           type="button"
@@ -218,7 +226,7 @@ export function SearchFilters({
               : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
           }`}
         >
-          Local
+          {tr("Local", "Local")}
         </button>
         <button
           type="button"
@@ -229,7 +237,7 @@ export function SearchFilters({
               : "border-[#c8dde5] bg-white text-[#183e58] hover:border-[#08a6a6]"
           }`}
         >
-          Destaques
+          {tr("Destaques", "Featured")}
         </button>
 
         {hasActiveFilters && (
@@ -238,7 +246,7 @@ export function SearchFilters({
             onClick={clearFilters}
             className="ml-auto rounded-full px-4 py-2 text-sm font-bold text-[#078b8d] transition hover:bg-[#e4f7f7]"
           >
-            Limpar filtros
+            {tr("Limpar filtros", "Clear filters")}
           </button>
         )}
       </div>

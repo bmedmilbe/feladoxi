@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { pt } from "date-fns/locale";
+import { enGB } from "date-fns/locale";
 import { DistrictLabels, Ad, ConditionLabels, AdCondition } from "@/types";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AdCardProps {
   ad: Ad;
@@ -56,29 +58,36 @@ function PinIcon() {
   );
 }
 
-function getWhatsAppContactUrl(ad: Ad) {
+function getWhatsAppContactUrl(ad: Ad, message: string) {
   const digits = ad.customer.mobile_number.replace(/\D/g, "");
   const baseUrl = ad.customer.whatsapp_link?.startsWith("http")
     ? ad.customer.whatsapp_link.split("?")[0]
     : `https://wa.me/${digits}`;
-  const message = `Olá, vi o anúncio "${ad.product_name}" no Mercado STP. Ainda está disponível?`;
-
   return `${baseUrl}?text=${encodeURIComponent(message)}`;
 }
 
 export function AdCard({ ad, featured = false }: AdCardProps) {
+  const { language, tr, categoryName } = useLanguage();
   const categoryFallback = ad.category?.slug
     ? categoryFallbackImages[ad.category.slug]
     : null;
   const primaryImage =
     ad.images?.[0]?.image_url || categoryFallback;
   const hasProductImage = Boolean(ad.images?.[0]?.image_url);
-  const districtLabel =
-    DistrictLabels[ad.customer.district] || ad.customer.district;
-  const conditionLabel = ad.condition
+  const originalDistrictLabel = DistrictLabels[ad.customer.district] || ad.customer.district;
+  const districtLabel = language === "en" && ad.customer.district === "DIASPORA" ? "Diaspora" : originalDistrictLabel;
+  const originalConditionLabel = ad.condition
     ? ConditionLabels[ad.condition as AdCondition]
     : null;
-  const whatsappUrl = getWhatsAppContactUrl(ad);
+  const englishConditions: Record<string, string> = { NEW: "New", USED: "Used", IMPORTED: "Imported", LOCAL: "Made in São Tomé" };
+  const conditionLabel = language === "en" && ad.condition ? englishConditions[ad.condition] : originalConditionLabel;
+  const whatsappUrl = getWhatsAppContactUrl(
+    ad,
+    tr(
+      `Olá, vi o anúncio "${ad.product_name}" no Mercado STP. Ainda está disponível?`,
+      `Hello, I saw the listing "${ad.product_name}" on Mercado STP. Is it still available?`,
+    ),
+  );
 
   return (
     <article
@@ -93,7 +102,7 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
               {ad.category?.name?.charAt(0) || "M"}
             </span>
             <span className="text-xs font-bold uppercase tracking-[0.14em]">
-              Sem fotografia
+              {tr("Sem fotografia", "No photo")}
             </span>
           </div>
 
@@ -125,11 +134,11 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
         <div className="p-3 sm:p-4">
           <div className="mb-2 flex items-center justify-between gap-3">
             <span className="min-w-0 truncate rounded-full bg-[#e4f7f7] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#078b8d] sm:px-3 sm:text-xs sm:tracking-[0.12em]">
-              {ad.category?.name || "Sem categoria"}
+              {ad.category ? categoryName(ad.category.slug, ad.category.name) : tr("Sem categoria", "Uncategorised")}
             </span>
             {featured && (
               <span className="hidden rounded-full bg-[#ffd23f] px-3 py-1 text-xs font-bold text-[#082f4f] sm:inline-flex">
-                Destaque
+                {tr("Destaque", "Featured")}
               </span>
             )}
           </div>
@@ -156,11 +165,11 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
               <p className="mt-1 hidden text-xs text-[#6d8179] sm:block">
                 {formatDistanceToNow(new Date(ad.created_at), {
                   addSuffix: true,
-                  locale: pt,
+                  locale: language === "en" ? enGB : pt,
                 })}
               </p>
             </div>
-            <span className="hidden text-sm font-bold text-[#078b8d] sm:inline">Ver</span>
+            <span className="hidden text-sm font-bold text-[#078b8d] sm:inline">{tr("Ver", "View")}</span>
           </div>
         </div>
       </Link>
@@ -171,8 +180,8 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
         rel="noopener noreferrer"
         onClick={(event) => event.stopPropagation()}
         className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full bg-[#138256] text-white shadow-[0_10px_22px_rgba(19,130,86,0.3)] transition hover:scale-105 hover:bg-[#0f6c48] sm:right-3 sm:top-3 sm:h-11 sm:w-11"
-        aria-label={`Contactar fornecedor de ${ad.product_name} no WhatsApp`}
-        title="Contactar no WhatsApp"
+        aria-label={tr(`Contactar fornecedor de ${ad.product_name} no WhatsApp`, `Contact the supplier of ${ad.product_name} on WhatsApp`)}
+        title={tr("Contactar no WhatsApp", "Contact on WhatsApp")}
       >
         <WhatsAppIcon />
       </a>

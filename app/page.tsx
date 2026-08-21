@@ -15,6 +15,7 @@ import { fetchAds, fetchCategories } from "@/lib/api";
 import type { Ad, ApiResponse, Category, FilterState } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 type SearchParamReader = {
   get: (key: string) => string | null;
@@ -45,19 +46,27 @@ function filtersAreEqual(first: FilterState, second: FilterState) {
 const marketHighlights = [
   {
     title: "Produtos locais",
+    titleEn: "Local products",
     description: "Descubra o que São Tomé tem para oferecer.",
+    descriptionEn: "Discover what São Tomé has to offer.",
   },
   {
     title: "WhatsApp direto",
+    titleEn: "Direct WhatsApp",
     description: "Fale diretamente com cada fornecedor.",
+    descriptionEn: "Talk directly to each seller.",
   },
   {
     title: "Em todo o país",
+    titleEn: "Across the country",
     description: "Encontre anúncios de todos os distritos.",
+    descriptionEn: "Find listings from every district.",
   },
   {
     title: "Venda simples",
+    titleEn: "Simple selling",
     description: "Publique o seu anúncio em poucos passos.",
+    descriptionEn: "Publish your listing in a few steps.",
   },
 ];
 
@@ -112,6 +121,7 @@ function HomePageContent() {
     getFiltersFromSearchParams(searchParams),
   );
   const { hasPendingAd, pendingAdData, clearPendingAd } = useAuth();
+  const { language, tr } = useLanguage();
 
   useEffect(() => {
     const urlFilters = getFiltersFromSearchParams(
@@ -203,11 +213,10 @@ function HomePageContent() {
               </span>
               <div>
                 <p className="text-sm font-bold text-[#4c3212]">
-                  Tem um rascunho de anúncio aguardando publicação
+                  {tr("Tem um rascunho de anúncio aguardando publicação", "You have a draft listing waiting to be published")}
                 </p>
                 <p className="text-xs text-[#6f4d1b]">
-                  &quot;{pendingAdData.product_name}&quot; - faça login para
-                  publicar
+                  &quot;{pendingAdData.product_name}&quot; - {tr("faça login para publicar", "sign in to publish")}
                 </p>
               </div>
             </div>
@@ -216,13 +225,13 @@ function HomePageContent() {
                 href="/auth/login"
                 className="rounded-md bg-[#082f4f] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#0b456e]"
               >
-                Publicar agora
+                {tr("Publicar agora", "Publish now")}
               </Link>
               <button
                 onClick={clearPendingAd}
                 className="text-sm font-semibold text-[#6f4d1b] transition-colors hover:text-[#082f4f]"
               >
-                Descartar
+                {tr("Descartar", "Discard")}
               </button>
             </div>
           </div>
@@ -238,8 +247,8 @@ function HomePageContent() {
                 <BenefitIcon index={index} />
               </span>
               <div className="min-w-0">
-                <h2 className="text-sm font-black text-[#082f4f]">{highlight.title}</h2>
-                <p className="mt-1 text-xs leading-5 text-[#657d8d]">{highlight.description}</p>
+                <h2 className="text-sm font-black text-[#082f4f]">{tr(highlight.title, highlight.titleEn)}</h2>
+                <p className="mt-1 text-xs leading-5 text-[#657d8d]">{tr(highlight.description, highlight.descriptionEn)}</p>
               </div>
             </div>
           ))}
@@ -251,13 +260,13 @@ function HomePageContent() {
           <section id="categorias" className="mb-6 scroll-mt-32 sm:mb-10">
             <div className="mb-4 flex flex-col justify-between gap-3 sm:mb-5 sm:flex-row sm:items-end">
               <div>
-                <SectionEyebrow>Descobrir agora</SectionEyebrow>
+                <SectionEyebrow>{tr("Descobrir agora", "Discover now")}</SectionEyebrow>
                 <h2 className="mt-2 text-2xl font-black text-[#082f4f] sm:text-3xl">
-                  Categorias em destaque
+                  {tr("Categorias em destaque", "Featured categories")}
                 </h2>
               </div>
               <p className="hidden max-w-md text-sm leading-6 text-[#657d8d] sm:block">
-                Uma seleção de produtos locais, tecnologia, moda e oportunidades.
+                {tr("Uma seleção de produtos locais, tecnologia, moda e oportunidades.", "A selection of local products, technology, fashion and opportunities.")}
               </p>
             </div>
             <CategoryGrid categories={categories?.results || []} />
@@ -275,24 +284,24 @@ function HomePageContent() {
         <div id="produtos" className="mb-6 scroll-mt-36">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <SectionEyebrow>Vitrine</SectionEyebrow>
+              <SectionEyebrow>{tr("Vitrine", "Marketplace")}</SectionEyebrow>
               <h2 className="mt-2 text-2xl font-black text-[#082f4f] sm:text-3xl">
                 {isLoading
-                  ? "A carregar produtos"
-                  : `${adCount} anúncio${adCount !== 1 ? "s" : ""} encontrado${
-                      adCount !== 1 ? "s" : ""
-                    }`}
+                  ? tr("A carregar produtos", "Loading products")
+                  : language === "en"
+                    ? `${adCount} listing${adCount !== 1 ? "s" : ""} found`
+                    : `${adCount} anúncio${adCount !== 1 ? "s" : ""} encontrado${adCount !== 1 ? "s" : ""}`}
               </h2>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#657d8d]">
               {featuredAds.length > 0 && (
                 <span className="rounded-full bg-[#ffe8df] px-3 py-1 text-[#b53828]">
-                  {featuredAds.length} em destaque
+                  {language === "en" ? `${featuredAds.length} featured` : `${featuredAds.length} em destaque`}
                 </span>
               )}
               {hasActiveFilters && (
                 <span className="rounded-full bg-[#e4f7f7] px-3 py-1 text-[#078b8d]">
-                  Filtros ativos
+                  {tr("Filtros ativos", "Active filters")}
                 </span>
               )}
             </div>
@@ -303,9 +312,9 @@ function HomePageContent() {
           <ProductSkeletonGrid />
         ) : isError ? (
           <EmptyState
-            title="Ainda não há anúncios disponíveis"
-            description="A base de dados pode estar temporariamente indisponível. Tente novamente em poucos instantes."
-            actionText="Tentar novamente"
+            title={tr("Ainda não há anúncios disponíveis", "No listings are available yet")}
+            description={tr("A base de dados pode estar temporariamente indisponível. Tente novamente em poucos instantes.", "The online database may be temporarily unavailable. Please try again shortly.")}
+            actionText={tr("Tentar novamente", "Try again")}
             actionLink="/"
             actionOnClick={() => refetch()}
           />
@@ -316,10 +325,10 @@ function HomePageContent() {
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xl font-black text-[#082f4f]">
-                      Em destaque
+                      {tr("Em destaque", "Featured")}
                     </h3>
                     <p className="mt-1 text-sm text-[#657d8d]">
-                      Produtos com maior visibilidade na plataforma.
+                      {tr("Produtos com maior visibilidade na plataforma.", "Products with greater visibility on the platform.")}
                     </p>
                   </div>
                 </div>
@@ -336,10 +345,10 @@ function HomePageContent() {
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
                     <h3 className="text-xl font-black text-[#082f4f]">
-                      Mais anúncios
+                      {tr("Mais anúncios", "More listings")}
                     </h3>
                     <p className="mt-1 text-sm text-[#657d8d]">
-                      Novidades publicadas por vendedores da comunidade.
+                      {tr("Novidades publicadas por vendedores da comunidade.", "New listings published by community sellers.")}
                     </p>
                   </div>
                 </div>
@@ -353,9 +362,9 @@ function HomePageContent() {
           </div>
         ) : (
           <EmptyState
-            title="Nenhum anúncio encontrado"
-            description="Tente ajustar os filtros de pesquisa ou crie um novo anúncio."
-            actionText="Criar anúncio"
+            title={tr("Nenhum anúncio encontrado", "No listings found")}
+            description={tr("Tente ajustar os filtros de pesquisa ou crie um novo anúncio.", "Adjust your search filters or create a new listing.")}
+            actionText={tr("Criar anúncio", "Create listing")}
             actionLink="/ads/create"
           />
         )}

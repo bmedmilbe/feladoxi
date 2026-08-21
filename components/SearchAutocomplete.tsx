@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAds, fetchCategories } from "@/lib/api";
 import type { Ad, ApiResponse, Category } from "@/types";
+import { useLanguage } from "@/context/LanguageContext";
 
 export interface SearchSuggestion {
   id: string;
@@ -71,6 +72,7 @@ export function SearchAutocomplete({
   iconClassName = "left-4",
   autoComplete = "off",
 }: SearchAutocompleteProps) {
+  const { tr, categoryName } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [debouncedSearch, setDebouncedSearch] = useState(value.trim());
@@ -110,15 +112,15 @@ export function SearchAutocomplete({
 
     const categories = (categoryData?.results || [])
       .filter((category) =>
-        normalizeSearchText(`${category.name} ${category.description || ""}`).includes(
+        normalizeSearchText(`${category.name} ${categoryName(category.slug, category.name)} ${category.description || ""}`).includes(
           normalizedSearch,
         ),
       )
       .slice(0, 3)
       .map((category) => ({
         id: `category-${category.id}`,
-        label: category.name,
-        detail: "Categoria",
+        label: categoryName(category.slug, category.name),
+        detail: tr("Categoria", "Category"),
         type: "category" as const,
         categorySlug: category.slug,
       }));
@@ -139,12 +141,12 @@ export function SearchAutocomplete({
       .map((ad) => ({
         id: `product-${ad.id}`,
         label: ad.product_name,
-        detail: ad.category?.name || "Produto",
+        detail: ad.category ? categoryName(ad.category.slug, ad.category.name) : tr("Produto", "Product"),
         type: "product" as const,
       }));
 
     return [...products, ...categories].slice(0, 6);
-  }, [categoryData?.results, normalizedSearch, productData?.results]);
+  }, [categoryData?.results, categoryName, normalizedSearch, productData?.results, tr]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -252,20 +254,20 @@ export function SearchAutocomplete({
                 </span>
               </span>
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#e7492f]">
-                {suggestion.type === "product" ? "Produto" : "Ver"}
+                {suggestion.type === "product" ? tr("Produto", "Product") : tr("Ver", "View")}
               </span>
             </button>
           ))}
 
           {isFetching && suggestions.length === 0 && (
             <div className="px-4 py-5 text-sm font-medium text-[#60776e]">
-              A procurar sugestões...
+              {tr("A procurar sugestões...", "Searching for suggestions...")}
             </div>
           )}
 
           {!isFetching && normalizedSearch.length >= 2 && suggestions.length === 0 && (
             <div className="px-4 py-5 text-sm font-medium text-[#60776e]">
-              Sem sugestões. Prima Enter para pesquisar.
+              {tr("Sem sugestões. Prima Enter para pesquisar.", "No suggestions. Press Enter to search.")}
             </div>
           )}
         </div>

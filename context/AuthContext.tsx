@@ -15,6 +15,7 @@ import {
   logout as apiLogout,
 } from "@/lib/api";
 import toast from "react-hot-toast";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface AuthContextType {
   user: { id: number; mobile_number: string; district: string } | null;
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     created_at: string;
   } | null>(null);
   const router = useRouter();
+  const { tr } = useLanguage();
 
   useEffect(() => {
     // Check for existing session
@@ -125,23 +127,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("pending_ad_data");
         setPendingAdData(null);
 
-        toast.success("O anúncio guardado foi publicado com sucesso");
+        toast.success(tr("O anúncio guardado foi publicado com sucesso", "Your saved listing was published successfully"));
 
         // Redirect to the newly created ad
         router.push(`/ads/${response.transferred_ad_id}`);
         return; // Exit early to avoid double redirect
       } else if (pending_ad_token) {
         // If we had a token but no transfer occurred
-        toast("O rascunho ficou guardado em Meus anúncios");
+        toast(tr("O rascunho ficou guardado em Meus anúncios", "The draft was saved in My listings"));
       }
 
-      toast.success("Sessão iniciada com sucesso");
+      toast.success(tr("Sessão iniciada com sucesso", "Signed in successfully"));
       router.push("/");
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage =
         error.response?.data?.error ||
-        "Não foi possível entrar. Verifique o número e o PIN.";
+        tr("Não foi possível entrar. Verifique o número e o PIN.", "Unable to sign in. Check your number and PIN.");
       toast.error(errorMessage);
       throw error;
     } finally {
@@ -157,14 +159,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if there's a pending ad to transfer after registration
       const pendingToken = localStorage.getItem("pending_ad_token");
       if (pendingToken) {
-        toast.success("O rascunho será publicado depois do primeiro acesso");
+        toast.success(tr("O rascunho será publicado depois do primeiro acesso", "The draft will be published after your first sign-in"));
       }
 
-      toast.success("Conta criada com sucesso");
+      toast.success(tr("Conta criada com sucesso", "Account created successfully"));
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage =
-        error.response?.data?.error || "Não foi possível criar a conta. Tente novamente.";
+        error.response?.data?.error || tr("Não foi possível criar a conta. Tente novamente.", "Unable to create the account. Please try again.");
       toast.error(errorMessage);
       throw error;
     } finally {
@@ -175,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     apiLogout();
     setUser(null);
-    toast.success("Sessão encerrada");
+    toast.success(tr("Sessão encerrada", "Signed out"));
     router.push("/");
   };
 
@@ -183,7 +185,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("pending_ad_token");
     localStorage.removeItem("pending_ad_data");
     setPendingAdData(null);
-    toast.success("Rascunho descartado");
+    toast.success(tr("Rascunho descartado", "Draft discarded"));
   };
 
   return (

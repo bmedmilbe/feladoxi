@@ -1,3 +1,7 @@
+"use client";
+
+import { useLanguage } from "@/context/LanguageContext";
+
 interface PhoneFieldProps {
   countryCode: string;
   mobileNumber: string;
@@ -40,14 +44,15 @@ export function PhoneField({
   onMobileNumberChange,
   idPrefix,
 }: PhoneFieldProps) {
+  const { tr } = useLanguage();
   return (
     <div>
       <label htmlFor={`${idPrefix}-mobile-number`} className="market-label">
-        Número de telefone <span className="text-[#e7492f]">*</span>
+        {tr("Número de telefone", "Phone number")} <span className="text-[#e7492f]">*</span>
       </label>
       <div className="mt-2 grid grid-cols-[132px_minmax(0,1fr)] gap-2 sm:grid-cols-[145px_minmax(0,1fr)]">
         <label className="sr-only" htmlFor={`${idPrefix}-country-code`}>
-          Indicativo do país
+          {tr("Indicativo do país", "Country calling code")}
         </label>
         <select
           id={`${idPrefix}-country-code`}
@@ -74,7 +79,7 @@ export function PhoneField({
         />
       </div>
       <p className="mt-2 text-xs leading-5 text-[#6d8179]">
-        Escolha o indicativo e escreva o número sem zeros à frente.
+        {tr("Escolha o indicativo e escreva o número sem zeros à frente.", "Choose the calling code and enter the number without leading zeros.")}
       </p>
     </div>
   );

@@ -5,9 +5,9 @@ import { Footer } from "@/components/Footer";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "Mercado STP - Compra e venda em São Tomé e Príncipe",
+  title: "Mercado STP | Mercado online de São Tomé e Príncipe",
   description:
-    "Encontre produtos locais, eletrónica, moda, casa e muito mais em São Tomé e Príncipe",
+    "Compre e venda produtos em São Tomé e Príncipe. Buy and sell products across São Tomé and Príncipe.",
 };
 
 export default function RootLayout({
