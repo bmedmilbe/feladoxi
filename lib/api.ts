@@ -163,8 +163,25 @@ api.interceptors.response.use(
 
 // Categories
 export async function fetchCategories(): Promise<ApiResponse<Category>> {
-  const response = await api.get<any>(buildApiUrl("/marketplace/categories/"));
-  return normalizeApiResponse<Category>(response.data);
+  const categories: Category[] = [];
+  const visitedPages = new Set<string>();
+  let nextPageUrl: string | null = buildApiUrl("/marketplace/categories/");
+
+  while (nextPageUrl && !visitedPages.has(nextPageUrl)) {
+    visitedPages.add(nextPageUrl);
+
+    const response: { data: any } = await api.get<any>(nextPageUrl);
+    const page = normalizeApiResponse<Category>(response.data);
+    categories.push(...page.results);
+    nextPageUrl = page.next ? normalizeMediaUrl(page.next) : null;
+  }
+
+  return {
+    count: categories.length,
+    next: null,
+    previous: null,
+    results: categories,
+  };
 }
 
 // Ads
