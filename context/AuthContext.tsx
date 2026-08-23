@@ -13,6 +13,9 @@ import {
   login as apiLogin,
   register as apiRegister,
   logout as apiLogout,
+  fetchCurrentUser,
+  getApiErrorMessage,
+  publishTemporaryAd,
 } from "@/lib/api";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
@@ -95,33 +98,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ) => {
     setIsLoading(true);
     try {
-      // Build request payload
-      const payload: any = {
-        mobile_number,
-        pin,
-      };
-
-      // If we have a pending ad token, include it in the request
-      if (pending_ad_token) {
-        payload.pending_ad_token = pending_ad_token;
-      }
-
-      const response = await apiLogin(payload);
+      const response = await apiLogin({ mobile_number, pin });
 
       // Store authentication data
-      localStorage.setItem("auth_token", response.token);
-      localStorage.setItem("user_id", String(response.user_id));
-      localStorage.setItem("mobile_number", response.mobile_number);
-      localStorage.setItem("district", response.district);
+      localStorage.setItem("auth_token", response.access);
+      localStorage.setItem("refresh_token", response.refresh);
+      const currentUser = await fetchCurrentUser();
+      const district = localStorage.getItem("district") || "";
+      localStorage.setItem("user_id", String(currentUser.id));
+      localStorage.setItem("mobile_number", currentUser.mobile_number);
 
       setUser({
-        id: response.user_id,
-        mobile_number: response.mobile_number,
-        district: response.district,
+        id: currentUser.id,
+        mobile_number: currentUser.mobile_number,
+        district,
       });
 
       // Handle pending ad transfer
-      if (response.transferred_ad_id) {
+      if (pending_ad_token) {
+        const publishedAd = await publishTemporaryAd(pending_ad_token);
         // Clear pending ad data from localStorage
         localStorage.removeItem("pending_ad_token");
         localStorage.removeItem("pending_ad_data");
@@ -130,11 +125,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         toast.success(tr("O anúncio guardado foi publicado com sucesso", "Your saved listing was published successfully"));
 
         // Redirect to the newly created ad
-        router.push(`/ads/${response.transferred_ad_id}`);
+        router.push(`/ads/${publishedAd.id}`);
         return; // Exit early to avoid double redirect
-      } else if (pending_ad_token) {
-        // If we had a token but no transfer occurred
-        toast(tr("O rascunho ficou guardado em Meus anúncios", "The draft was saved in My listings"));
       }
 
       toast.success(tr("Sessão iniciada com sucesso", "Signed in successfully"));
@@ -142,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage =
-        error.response?.data?.error ||
+        getApiErrorMessage(error) ||
         tr("Não foi possível entrar. Verifique o número e o PIN.", "Unable to sign in. Check your number and PIN.");
       toast.error(errorMessage);
       throw error;
@@ -166,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error("Register error:", error);
       const errorMessage =
-        error.response?.data?.error || tr("Não foi possível criar a conta. Tente novamente.", "Unable to create the account. Please try again.");
+        getApiErrorMessage(error) || tr("Não foi possível criar a conta. Tente novamente.", "Unable to create the account. Please try again.");
       toast.error(errorMessage);
       throw error;
     } finally {

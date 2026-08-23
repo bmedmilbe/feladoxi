@@ -10,6 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import {
   createTemporaryAd,
   fetchCategories,
+  getApiErrorMessage,
   uploadTemporaryAdImage,
 } from "@/lib/api";
 import {
@@ -220,15 +221,13 @@ export default function CreateAdPage() {
       submitData.append("product_name", formData.product_name.trim());
       submitData.append("description", formData.description.trim());
       submitData.append("category", formData.category);
-      submitData.append("condition", formData.condition);
-
       if (formData.price.trim()) {
         submitData.append("price", formData.price.trim());
       }
 
       const response = await createTemporaryAd(submitData);
 
-      if (!response.id || !response.session_token) {
+      if (!response.id) {
         throw new Error("A API não devolveu os dados do anúncio temporário");
       }
 
@@ -240,7 +239,7 @@ export default function CreateAdPage() {
         await uploadTemporaryAdImage(response.id, image, index);
       }
 
-      localStorage.setItem("pending_ad_token", response.session_token);
+      localStorage.setItem("pending_ad_token", response.id);
       localStorage.setItem(
         "pending_ad_data",
         JSON.stringify({
@@ -255,7 +254,8 @@ export default function CreateAdPage() {
     } catch (error: any) {
       console.error("Error creating temporary ad:", error);
       toast.error(
-        error.response?.data?.error ||
+        getApiErrorMessage(error) ||
+          error.message ||
           tr("Não foi possível criar o anúncio. Tente novamente.", "Unable to create the listing. Please try again."),
       );
     } finally {

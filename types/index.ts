@@ -74,8 +74,7 @@ export interface Ad {
 }
 
 export interface TemporaryAd {
-  id: number;
-  session_token: string;
+  id: string;
   category: number | null;
   product_name: string;
   description: string;

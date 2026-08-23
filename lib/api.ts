@@ -136,13 +136,14 @@ function clearAuthStorage(): void {
   window.localStorage.removeItem("user_id");
   window.localStorage.removeItem("mobile_number");
   window.localStorage.removeItem("district");
+  window.localStorage.removeItem("refresh_token");
 }
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
   const token = getStoredItem("auth_token");
   if (token) {
-    config.headers.Authorization = `Token ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -256,7 +257,7 @@ export async function createTemporaryAd(
 }
 
 export async function uploadTemporaryAdImage(
-  temporaryAdId: number,
+  temporaryAdId: string,
   image: File,
   order: number,
 ): Promise<TemporaryAdImage> {
@@ -275,60 +276,48 @@ export async function uploadTemporaryAdImage(
   return normalizeTextFields(response.data);
 }
 
-export async function updateTemporaryAd(
-  data: FormData,
-): Promise<TemporaryAd> {
-  const response = await api.put<TemporaryAd>(
-    buildApiUrl("/marketplace/guest/temporary-ads/"),
-    data,
-    multipartConfig,
-  );
-  return normalizeTextFields(response.data);
-}
-
-export async function deleteTemporaryAd(session_token: string): Promise<void> {
-  await api.delete(buildApiUrl("/marketplace/guest/temporary-ads/"), {
-    data: { session_token },
-  });
-}
 export async function login(payload: {
   mobile_number: string;
   pin: string;
-  pending_ad_token?: string;
 }): Promise<{
-  token: string;
-  user_id: number;
-  mobile_number: string;
-  district: string;
-  transferred_ad_id: number | null;
+  access: string;
+  refresh: string;
 }> {
-  const response = await api.post(buildApiUrl("/auth/login/"), payload);
+  const response = await api.post(buildApiUrl("/auth/jwt/create/"), {
+    mobile_number: payload.mobile_number,
+    password: payload.pin,
+  });
   return response.data;
+}
+
+export async function fetchCurrentUser(): Promise<{
+  id: number;
+  mobile_number: string;
+  username: string;
+}> {
+  const response = await api.get(buildApiUrl("/auth/users/me/"));
+  return normalizeTextFields(response.data);
+}
+
+export async function publishTemporaryAd(tempAdId: string): Promise<Ad> {
+  const response = await api.post<Ad>(
+    buildApiUrl("/marketplace/manage/ads/"),
+    { temp_ad_id: tempAdId },
+  );
+  return normalizeTextFields(response.data);
 }
 
 export async function register(
   mobile_number: string,
   district: string,
 ): Promise<{
-  message: string;
+  id: number;
   mobile_number: string;
-  district: string;
-  pin_sent: boolean;
 }> {
-  const response = await api.post(buildApiUrl("/auth/register/"), {
-    mobile_number,
-    district,
-  });
-  return response.data;
-}
-
-export async function resendPin(mobile_number: string): Promise<{
-  message?: string;
-  error?: string;
-}> {
-  const response = await api.post(buildApiUrl("/auth/resend-pin/"), {
+  const response = await api.post(buildApiUrl("/auth/users/"), {
     mobile_number,
   });
+  if (isBrowser) window.localStorage.setItem("district", district);
   return response.data;
 }
 
@@ -351,4 +340,24 @@ export function logout(): void {
   localStorage.removeItem("user_id");
   localStorage.removeItem("mobile_number");
   localStorage.removeItem("district");
+  localStorage.removeItem("refresh_token");
+}
+
+export function getApiErrorMessage(error: unknown): string | null {
+  const data = (error as { response?: { data?: unknown } })?.response?.data;
+  if (typeof data === "string") return data;
+  if (!data || typeof data !== "object") return null;
+
+  const record = data as Record<string, unknown>;
+  for (const key of ["error", "detail", "message", "non_field_errors"]) {
+    const value = record[key];
+    if (typeof value === "string") return value;
+    if (Array.isArray(value) && value.length > 0) return String(value[0]);
+  }
+
+  for (const [field, value] of Object.entries(record)) {
+    if (typeof value === "string") return `${field}: ${value}`;
+    if (Array.isArray(value) && value.length > 0) return `${field}: ${String(value[0])}`;
+  }
+  return null;
 }

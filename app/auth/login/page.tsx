@@ -8,7 +8,6 @@ import { AuthShell } from "@/components/AuthShell";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PhoneField } from "@/components/PhoneField";
 import { useAuth } from "@/context/AuthContext";
-import { resendPin } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface PendingAd {
@@ -31,7 +30,6 @@ function LoginForm() {
   const { login, isLoading: authLoading } = useAuth();
   const { language, tr } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [showPinHelp, setShowPinHelp] = useState(false);
   const [pendingAd, setPendingAd] = useState<PendingAd | null>(null);
   const [formData, setFormData] = useState({
@@ -91,21 +89,6 @@ function LoginForm() {
       // O contexto apresenta a mensagem devolvida pela API.
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleResendPin = async () => {
-    if (!validatePhone()) return;
-
-    setIsResending(true);
-    try {
-      await resendPin(fullNumber);
-      toast.success(tr("PIN reenviado por SMS", "PIN sent again by SMS"));
-    } catch (error) {
-      const apiError = error as { response?: { data?: { error?: string } } };
-      toast.error(apiError.response?.data?.error || tr("Não foi possível reenviar o PIN", "Unable to resend the PIN"));
-    } finally {
-      setIsResending(false);
     }
   };
 
@@ -202,19 +185,9 @@ function LoginForm() {
           />
           {showPinHelp && (
             <div className="mt-3 border-l-2 border-[#0b8a5f] bg-[#eef8f1] px-4 py-3 text-xs leading-5 text-[#52685f]">
-              {tr("O PIN é enviado por SMS quando cria a conta. Se não o recebeu, confirme o número e solicite um novo envio.", "The PIN is sent by SMS when you create your account. If it did not arrive, check the number and request a new one.")}
+              {tr("O PIN é enviado por SMS quando cria a conta. Confirme se o indicativo e o número estão corretos.", "The PIN is sent by SMS when you create your account. Check that the calling code and number are correct.")}
             </div>
           )}
-          <div className="mt-3 text-right">
-            <button
-              type="button"
-              onClick={handleResendPin}
-              disabled={isResending}
-              className="text-xs font-bold text-[#0b6a4c] hover:text-[#e7492f] disabled:opacity-50"
-            >
-              {isResending ? tr("A reenviar...", "Resending...") : tr("Não recebeu? Reenviar PIN", "Did not receive it? Resend PIN")}
-            </button>
-          </div>
         </div>
 
         <button
