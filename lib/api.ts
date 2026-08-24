@@ -317,7 +317,10 @@ export async function register(
   const response = await api.post(buildApiUrl("/auth/users/"), {
     mobile_number,
   });
-  if (isBrowser) window.localStorage.setItem("district", district);
+  if (isBrowser) {
+    window.localStorage.setItem("district", district);
+    window.localStorage.setItem("last_registered_mobile_number", mobile_number);
+  }
   return response.data;
 }
 

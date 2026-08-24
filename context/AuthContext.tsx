@@ -107,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const district = localStorage.getItem("district") || "";
       localStorage.setItem("user_id", String(currentUser.id));
       localStorage.setItem("mobile_number", currentUser.mobile_number);
+      localStorage.removeItem("last_registered_mobile_number");
 
       setUser({
         id: currentUser.id,
@@ -133,9 +134,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push("/");
     } catch (error: any) {
       console.error("Login error:", error);
-      const errorMessage =
-        getApiErrorMessage(error) ||
-        tr("Não foi possível entrar. Verifique o número e o PIN.", "Unable to sign in. Check your number and PIN.");
+      const apiMessage = getApiErrorMessage(error);
+      const invalidAccount = apiMessage?.toLowerCase().includes(
+        "no active account found",
+      );
+      const errorMessage = invalidAccount
+        ? tr(
+            "Não foi possível entrar. Confirme o número e o PIN. Se criou a conta agora, ela pode ainda não estar ativa no servidor.",
+            "Unable to sign in. Check the number and PIN. If you just created the account, it may not be active on the server yet.",
+          )
+        : apiMessage ||
+          tr("Não foi possível entrar. Verifique o número e o PIN.", "Unable to sign in. Check your number and PIN.");
       toast.error(errorMessage);
       throw error;
     } finally {

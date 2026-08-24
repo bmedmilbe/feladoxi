@@ -16,6 +16,12 @@ interface PendingAd {
   created_at: string;
 }
 
+const supportedCountryCodes = [
+  "+239", "+351", "+244", "+238", "+245", "+258", "+234", "+254",
+  "+250", "+256", "+33", "+34", "+44", "+49", "+39", "+31", "+32",
+  "+41", "+55", "+27", "+86", "+81", "+91", "+1",
+];
+
 function Spinner() {
   return (
     <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -39,6 +45,20 @@ function LoginForm() {
   });
 
   useEffect(() => {
+    const registeredNumber = localStorage.getItem("last_registered_mobile_number");
+    if (registeredNumber) {
+      const countryCode = supportedCountryCodes.find((code) =>
+        registeredNumber.startsWith(code),
+      );
+      if (countryCode) {
+        setFormData((current) => ({
+          ...current,
+          country_code: countryCode,
+          mobile_number: registeredNumber.slice(countryCode.length).replace(/\D/g, ""),
+        }));
+      }
+    }
+
     const pendingAdToken = localStorage.getItem("pending_ad_token");
     const pendingAdData = localStorage.getItem("pending_ad_data");
 
