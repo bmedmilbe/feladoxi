@@ -195,6 +195,7 @@ function HomePageContent() {
   const featuredAds = ads?.results?.filter((ad) => ad.is_featured) || [];
   const regularAds = ads?.results?.filter((ad) => !ad.is_featured) || [];
   const adCount = ads?.results?.length || 0;
+  const showingDemoAds = Boolean(ads?.results?.some((ad) => ad.is_demo));
   const hasActiveFilters =
     filters.search ||
     filters.category ||
@@ -307,6 +308,20 @@ function HomePageContent() {
             </div>
           </div>
         </div>
+
+        {showingDemoAds && (
+          <div className="mb-5 flex items-center gap-3 rounded-md border border-[#e8bd22] bg-[#fff9dd] px-4 py-3 text-xs font-semibold leading-5 text-[#725500] sm:text-sm">
+            <span className="shrink-0 rounded bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f]">
+              {tr("Teste", "Demo")}
+            </span>
+            <p>
+              {tr(
+                "Estes produtos fictícios vêm dos rascunhos guardados na base de dados online.",
+                "These fictional products come from drafts stored in the online database.",
+              )}
+            </p>
+          </div>
+        )}
 
         {isLoading ? (
           <ProductSkeletonGrid />

@@ -1,27 +1,67 @@
 
 > feladoxi@0.1.0 dev
-> next dev --hostname 127.0.0.1 --port 3000
+> next dev --hostname 0.0.0.0 --port 3000
 
    ▲ Next.js 14.0.4
-   - Local:        http://127.0.0.1:3000
-   - Network:      http://127.0.0.1:3000
+   - Local:        http://localhost:3000
+   - Network:      http://0.0.0.0:3000
    - Environments: .env.local
 
- ✓ Ready in 3.7s
- ○ Compiling / ...
- ✓ Compiled / in 4.9s (2539 modules)
- ✓ Compiled in 672ms (1218 modules)
- ○ Compiling /ads/[id] ...
- ✓ Compiled /ads/[id] in 1248ms (2539 modules)
- ○ Compiling /ads/create ...
- ✓ Compiled /ads/create in 1644ms (2575 modules)
+ ✓ Ready in 5.2s
  ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 568ms (2585 modules)
- ✓ Compiled /auth/register in 344ms (2591 modules)
- ✓ Compiled /cart in 434ms (2597 modules)
- ○ Compiling /my-ads ...
- ✓ Compiled /my-ads in 567ms (2603 modules)
- ✓ Compiled /my-ads/[id] in 420ms (2609 modules)
+ ✓ Compiled /auth/login in 13.7s (816 modules)
+ ✓ Compiled in 850ms (357 modules)
  ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 1354ms (1349 modules)
- ✓ Compiled /cart in 444ms (1353 modules)
+ ✓ Compiled /favicon.ico in 2.3s (487 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 14.5s (2565 modules)
+ ✓ Compiled in 5.8s (2551 modules)
+ ✓ Compiled in 674ms (1224 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 4.1s (1355 modules)
+ ○ Compiling /my-ads ...
+ ✓ Compiled /my-ads in 3.8s (2559 modules)
+ ○ Compiling /ads/create ...
+ ✓ Compiled /ads/create in 9.5s (2581 modules)
+ ✓ Compiled in 9.3s (2576 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 4.1s (2572 modules)
+ ✓ Compiled in 4.3s (2586 modules)
+ ✓ Compiled in 2.2s (2586 modules)
+ ✓ Compiled in 1947ms (2586 modules)
+ ○ Compiling /favorites ...
+ ✓ Compiled /favorites in 2.1s (2578 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 22.4s (1370 modules)
+ ✓ Compiled in 10.4s (2578 modules)
+ ✓ Compiled in 3.9s (2578 modules)
+ ✓ Compiled in 2.4s (2578 modules)
+ ✓ Compiled in 2.1s (2578 modules)
+   ▲ Next.js 14.0.4
+   - Local:        http://localhost:3000
+   - Network:      http://0.0.0.0:3000
+   - Environments: .env.local
+
+ ✓ Ready in 37.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 63.3s (2541 modules)
+ ✓ Compiled in 2.4s (1220 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 6.5s (1349 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 3s (2553 modules)
+ ✓ Compiled in 755ms (1225 modules)
+ ✓ Compiled in 13.8s (2553 modules)
+ ✓ Compiled in 2.3s (2539 modules)
+ ✓ Compiled in 3s (2539 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1874ms (1356 modules)
+ ○ Compiling /favorites ...
+ ✓ Compiled /favorites in 1718ms (2587 modules)
+ ○ Compiling /my-ads ...
+ ✓ Compiled /my-ads in 755ms (2579 modules)
+ ○ Compiling /my-ads/[id] ...
+ ✓ Compiled /my-ads/[id] in 1446ms (2615 modules)
+ ✓ Compiled in 6.3s (2601 modules)
+ ✓ Compiled in 3.4s (2601 modules)
+ ✓ Compiled in 2.7s (2601 modules)

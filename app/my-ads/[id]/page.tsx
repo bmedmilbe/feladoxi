@@ -20,6 +20,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import {
   fetchAd,
   fetchCategories,
+  getApiErrorMessage,
   updateAd,
   uploadAdImage,
 } from "@/lib/api";
@@ -168,9 +169,7 @@ export default function EditAdPage() {
       submitData.append("product_name", formData.product_name.trim());
       submitData.append("description", formData.description.trim());
       submitData.append("category", formData.category);
-      if (formData.price.trim()) {
-        submitData.append("price", formData.price.trim());
-      }
+      submitData.append("price", formData.price.trim());
 
       await updateAd(id, submitData);
 
@@ -188,11 +187,9 @@ export default function EditAdPage() {
           : tr("Anúncio atualizado com sucesso!", "Listing updated successfully!"),
       );
       router.push("/my-ads");
-    } catch (error: any) {
-      const responseData = error.response?.data;
+    } catch (error: unknown) {
       const message =
-        responseData?.error ||
-        responseData?.image?.[0] ||
+        getApiErrorMessage(error) ||
         tr("Não foi possível atualizar o anúncio", "Unable to update the listing");
       toast.error(message);
     } finally {

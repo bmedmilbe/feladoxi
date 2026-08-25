@@ -11,16 +11,16 @@ import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdDetailPage() {
   const params = useParams();
-  const id = parseInt(params.id as string);
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const { tr } = useLanguage();
 
   const { data: ad, isLoading, isError } = useQuery({
     queryKey: ["ad", id],
     queryFn: () => fetchAd(id),
-    enabled: !isNaN(id),
+    enabled: Boolean(id),
   });
 
-  if (isNaN(id)) {
+  if (!id) {
     return (
       <EmptyState
         title={tr("Anúncio inválido", "Invalid listing")}

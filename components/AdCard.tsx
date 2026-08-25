@@ -7,6 +7,8 @@ import { pt } from "date-fns/locale";
 import { enGB } from "date-fns/locale";
 import { DistrictLabels, Ad, ConditionLabels, AdCondition } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { useFavorites } from "@/context/FavoritesContext";
 
 interface AdCardProps {
   ad: Ad;
@@ -43,6 +45,20 @@ function WhatsAppIcon() {
   );
 }
 
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} aria-hidden="true">
+      <path
+        d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function PinIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -68,14 +84,22 @@ function getWhatsAppContactUrl(ad: Ad, message: string) {
 
 export function AdCard({ ad, featured = false }: AdCardProps) {
   const { language, tr, categoryName } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorite = isFavorite(ad.id);
   const categoryFallback = ad.category?.slug
     ? categoryFallbackImages[ad.category.slug]
     : null;
   const primaryImage =
     ad.images?.[0]?.image_url || categoryFallback;
   const hasProductImage = Boolean(ad.images?.[0]?.image_url);
-  const originalDistrictLabel = DistrictLabels[ad.customer.district] || ad.customer.district;
-  const districtLabel = language === "en" && ad.customer.district === "DIASPORA" ? "Diaspora" : originalDistrictLabel;
+  const districtCode = ad.customer.district;
+  const originalDistrictLabel = DistrictLabels[districtCode as keyof typeof DistrictLabels] || districtCode;
+  const districtLabel = districtCode === "UNKNOWN"
+    ? tr("Distrito não informado", "District not provided")
+    : language === "en" && districtCode === "DIASPORA"
+      ? "Diaspora"
+      : originalDistrictLabel;
   const originalConditionLabel = ad.condition
     ? ConditionLabels[ad.condition as AdCondition]
     : null;
@@ -127,6 +151,11 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
           {conditionLabel && (
             <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-[#173a32] shadow-sm sm:bottom-3 sm:left-3 sm:px-3 sm:text-xs">
               {conditionLabel}
+            </span>
+          )}
+          {ad.is_demo && (
+            <span className="absolute left-2 top-2 rounded-md bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-xs">
+              {tr("Demonstração", "Demo")}
             </span>
           )}
         </div>
@@ -185,6 +214,30 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
       >
         <WhatsAppIcon />
       </a>
+      {isAuthenticated && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleFavorite(ad);
+          }}
+          className={`absolute right-2 top-12 z-10 grid h-9 w-9 place-items-center rounded-full border shadow-[0_10px_22px_rgba(7,52,79,0.18)] transition hover:scale-105 sm:right-3 sm:top-16 sm:h-11 sm:w-11 ${
+            favorite
+              ? "border-[#e7492f] bg-[#e7492f] text-white"
+              : "border-white/80 bg-white/95 text-[#e7492f] hover:bg-[#fff0ec]"
+          }`}
+          aria-label={
+            favorite
+              ? tr(`Remover ${ad.product_name} dos favoritos`, `Remove ${ad.product_name} from favourites`)
+              : tr(`Adicionar ${ad.product_name} aos favoritos`, `Add ${ad.product_name} to favourites`)
+          }
+          aria-pressed={favorite}
+          title={favorite ? tr("Remover dos favoritos", "Remove from favourites") : tr("Adicionar aos favoritos", "Add to favourites")}
+        >
+          <HeartIcon filled={favorite} />
+        </button>
+      )}
     </article>
   );
 }

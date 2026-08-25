@@ -1,0 +1,47 @@
+{
+  "created_at": "2026-08-24T12:10:20.849484Z",
+  "api": "https://easyadapp-production.up.railway.app/api",
+  "status": "temporary",
+  "products": [
+    {
+      "id": "6e57822e-d4a6-44a1-8618-39e4faf249c6",
+      "product_name": "[TESTE] Cacau premium de Sao Tome"
+    },
+    {
+      "id": "58e6fa5f-c6fa-4b4c-8469-7b9d4395ac1f",
+      "product_name": "[TESTE] Cafe torrado local"
+    },
+    {
+      "id": "ed6ee07e-5307-48f0-8655-08f6becc2599",
+      "product_name": "[TESTE] Smartphone 128 GB"
+    },
+    {
+      "id": "983e6f9b-b6cc-434c-8d8a-13c37a986a6a",
+      "product_name": "[TESTE] Computador portatil 15 polegadas"
+    },
+    {
+      "id": "26e40f0c-ad9d-404d-a919-d58051b819ed",
+      "product_name": "[TESTE] Bicicleta urbana"
+    },
+    {
+      "id": "ed9c8163-9bab-4162-bcd8-928d7b7e6257",
+      "product_name": "[TESTE] Sofa de tres lugares"
+    },
+    {
+      "id": "67aebd76-6c37-4135-9df1-12f848e30932",
+      "product_name": "[TESTE] Sapatos casuais"
+    },
+    {
+      "id": "634ba21e-d3a1-4a76-a0a7-dd384f6c234c",
+      "product_name": "[TESTE] Toyota Yaris usado"
+    },
+    {
+      "id": "14ed465d-a8e4-4b77-bc73-ed231c36ed6c",
+      "product_name": "[TESTE] Cabaz de frutas locais"
+    },
+    {
+      "id": "25f7957f-e620-47fd-98c0-1d25e2f83e8d",
+      "product_name": "[TESTE] Casa T2 em Agua Grande"
+    }
+  ]
+}

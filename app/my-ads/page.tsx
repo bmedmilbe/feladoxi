@@ -85,7 +85,7 @@ export default function MyAdsPage() {
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>("ALL");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<Ad["id"] | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -145,7 +145,7 @@ export default function MyAdsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteAd,
-    onMutate: (adId: number) => setDeletingId(adId),
+    onMutate: (adId: Ad["id"]) => setDeletingId(adId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["my-ads"] });
       toast.success(tr("Anúncio removido com sucesso", "Listing removed successfully"));
@@ -163,7 +163,7 @@ export default function MyAdsPage() {
     if (confirmed) deleteMutation.mutate(ad.id);
   };
 
-  const handleCopyLink = async (adId: number) => {
+  const handleCopyLink = async (adId: Ad["id"]) => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/ads/${adId}`);
       toast.success(tr("Link do anúncio copiado", "Listing link copied"));
@@ -340,7 +340,9 @@ export default function MyAdsPage() {
           <div className="mt-4 grid gap-4">
             {filteredAds.map((ad) => {
               const imageUrl = ad.images?.[0]?.image_url;
-              const district = DistrictLabels[ad.customer.district] || ad.customer.district;
+              const district = ad.customer.district === "UNKNOWN"
+                ? tr("Distrito não informado", "District not provided")
+                : DistrictLabels[ad.customer.district] || ad.customer.district;
 
               return (
                 <article

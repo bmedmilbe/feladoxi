@@ -76,7 +76,11 @@ export function AdDetail({ ad }: AdDetailProps) {
   const images = ad.images || [];
   const currentImage = images[selectedImage]?.image_url;
   const originalDistrictLabel = DistrictLabels[ad.customer.district] || ad.customer.district;
-  const districtLabel = language === "en" && ad.customer.district === "DIASPORA" ? "Diaspora" : originalDistrictLabel;
+  const districtLabel = ad.customer.district === "UNKNOWN"
+    ? tr("Distrito não informado", "District not provided")
+    : language === "en" && ad.customer.district === "DIASPORA"
+      ? "Diaspora"
+      : originalDistrictLabel;
   const originalConditionLabel = ad.condition
     ? ConditionLabels[ad.condition as AdCondition]
     : null;
@@ -182,6 +186,11 @@ export function AdDetail({ ad }: AdDetailProps) {
 
           <section className="min-w-0 lg:sticky lg:top-28 lg:self-start">
             <div className="flex flex-wrap items-center gap-2">
+              {ad.is_demo && (
+                <span className="rounded-full border border-[#e8bd22] bg-[#fff3bf] px-3 py-1 text-xs font-black text-[#725500]">
+                  {tr("Produto de demonstração", "Demo product")}
+                </span>
+              )}
               <span className={`rounded-full border px-3 py-1 text-xs font-black ${statusStyles[ad.status]}`}>
                 {statusLabels[ad.status]}
               </span>

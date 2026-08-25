@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useCart, type SellerCartGroup } from "@/context/CartContext";
-import { DistrictLabels, type CustomerProfile } from "@/types";
+import { DistrictLabels, type Ad, type CustomerProfile } from "@/types";
 
 interface BuyerDetails {
   name: string;
@@ -12,7 +12,7 @@ interface BuyerDetails {
 }
 
 interface StoredOrderProduct {
-  adId: number;
+  adId: Ad["id"];
   productName: string;
   category: string;
   quantity: number;

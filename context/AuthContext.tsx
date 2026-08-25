@@ -104,9 +104,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("auth_token", response.access);
       localStorage.setItem("refresh_token", response.refresh);
       const currentUser = await fetchCurrentUser();
-      const district = localStorage.getItem("district") || "";
+      const district = currentUser.district || localStorage.getItem("district") || "";
       localStorage.setItem("user_id", String(currentUser.id));
       localStorage.setItem("mobile_number", currentUser.mobile_number);
+      if (district) localStorage.setItem("district", district);
       localStorage.removeItem("last_registered_mobile_number");
 
       setUser({
@@ -179,7 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     apiLogout();
     setUser(null);
     toast.success(tr("Sessão encerrada", "Signed out"));
-    router.push("/");
+    router.replace("/");
+    router.refresh();
   };
 
   const clearPendingAd = () => {

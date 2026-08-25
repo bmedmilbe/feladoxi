@@ -11,6 +11,11 @@ const nextConfig = {
         hostname: 'easyadapp-production.up.railway.app',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'bm-edmilbe-bucket.s3.amazonaws.com',
+        pathname: '/**',
+      },
     ],
   },
 };

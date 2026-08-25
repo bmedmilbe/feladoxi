@@ -58,7 +58,7 @@ export const ConditionColors: Record<AdCondition, string> = {
 };
 
 export interface Ad {
-  id: number;
+  id: number | string;
   customer: CustomerProfile;
   category: Category | null;
   product_name: string;
@@ -71,6 +71,7 @@ export interface Ad {
   created_at: string;
   updated_at: string;
   images: AdImage[];
+  is_demo?: boolean;
 }
 
 export interface TemporaryAd {
@@ -101,7 +102,8 @@ export type District =
   | "LOBATA"
   | "ME_ZOCHI"
   | "PAGUE"
-  | "DIASPORA";
+  | "DIASPORA"
+  | "UNKNOWN";
 
 export const DistrictLabels: Record<District, string> = {
   AGUA_GRANDE: "Água Grande",
@@ -112,6 +114,7 @@ export const DistrictLabels: Record<District, string> = {
   ME_ZOCHI: "Mé-Zóchi",
   PAGUE: "Pague",
   DIASPORA: "Diáspora",
+  UNKNOWN: "Distrito não informado",
 };
 
 export const DistrictEmojis: Record<District, string> = {
@@ -123,6 +126,7 @@ export const DistrictEmojis: Record<District, string> = {
   ME_ZOCHI: "🌄",
   PAGUE: "🏝️",
   DIASPORA: "✈️",
+  UNKNOWN: "",
 };
 
 export interface FilterState {

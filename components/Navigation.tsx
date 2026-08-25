@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import { fetchCategories } from "@/lib/api";
 import type { ApiResponse, Category } from "@/types";
 import { useLanguage, type Language } from "@/context/LanguageContext";
@@ -143,6 +144,14 @@ function PlusIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
+function SignOutIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M10 5H5v14h5M14 8l4 4-4 4m4-4H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function ChevronIcon({ open = false }: { open?: boolean }) {
   return (
     <svg className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -169,14 +178,19 @@ function BrandMark() {
 export default function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, logout, hasPendingAd } = useAuth();
+  const { user, isAuthenticated, logout, hasPendingAd } = useAuth();
+  const { favoriteCount } = useFavorites();
   const { language, setLanguage, tr, categoryName } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreCategoriesOpen, setMoreCategoriesOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const isAccountPage = pathname.startsWith("/auth") || pathname.startsWith("/my-ads");
   const isCreatePage = pathname === "/ads/create";
+  const isFavoritesPage = pathname === "/favorites";
+  const favoritesHref = isAuthenticated ? "/favorites" : "/auth/login";
 
   const { data: categoryData } = useQuery<ApiResponse<Category>>({
     queryKey: ["categories"],
@@ -196,6 +210,43 @@ export default function Navigation() {
     window.addEventListener("popstate", syncCategory);
     return () => window.removeEventListener("popstate", syncCategory);
   }, [pathname]);
+
+  useEffect(() => {
+    setAccountMenuOpen(false);
+    setMobileMenuOpen(false);
+    setMoreCategoriesOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAccountMenuOpen(false);
+    };
+    const closeDesktopMenu = (event: PointerEvent) => {
+      if (
+        window.matchMedia("(min-width: 1024px)").matches &&
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target as Node)
+      ) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", closeWithEscape);
+    document.addEventListener("pointerdown", closeDesktopMenu);
+    return () => {
+      document.removeEventListener("keydown", closeWithEscape);
+      document.removeEventListener("pointerdown", closeDesktopMenu);
+    };
+  }, [accountMenuOpen]);
+
+  const handleLogout = () => {
+    setAccountMenuOpen(false);
+    setMobileMenuOpen(false);
+    setMoreCategoriesOpen(false);
+    logout();
+  };
 
   const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -251,8 +302,56 @@ export default function Navigation() {
             </form>
 
             <div className="ml-auto hidden items-center gap-1 lg:flex">
-              <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isAccountPage ? "text-[#079c9f]" : ""}`} aria-current={isAccountPage ? "page" : undefined}><UserIcon /><span>{tr("Minha conta", "My account")}</span></Link>
-              <Link href="/?featured=true#produtos" className="inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f]"><HeartIcon /><span>{tr("Favoritos", "Favourites")}</span></Link>
+              {isAuthenticated ? (
+                <div ref={accountMenuRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    className={`inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isAccountPage || accountMenuOpen ? "text-[#079c9f]" : ""}`}
+                    aria-expanded={accountMenuOpen}
+                    aria-controls="desktop-account-menu"
+                  >
+                    <UserIcon />
+                    <span>{tr("Minha conta", "My account")}</span>
+                    <ChevronIcon open={accountMenuOpen} />
+                  </button>
+
+                  {accountMenuOpen && (
+                    <div id="desktop-account-menu" className="absolute right-0 top-[calc(100%+8px)] z-[70] w-64 overflow-hidden rounded-md border border-[#c8dde5] bg-white shadow-[0_18px_45px_rgba(7,52,79,0.18)]">
+                      <div className="border-b border-[#e5eff3] px-4 py-3">
+                        <p className="text-xs font-semibold text-[#6b8190]">{tr("Sessão iniciada", "Signed in")}</p>
+                        <p className="mt-1 truncate text-sm font-black text-[#082f4f]">{user?.mobile_number}</p>
+                      </div>
+                      <nav className="p-2" aria-label={tr("Opções da conta", "Account options")}>
+                        <Link href="/my-ads" className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-[#183e58] transition hover:bg-[#eefafa] hover:text-[#087f82]">
+                          <ProductIcon />
+                          <span>{tr("Meus anúncios", "My listings")}</span>
+                        </Link>
+                        <Link href="/favorites" className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-[#183e58] transition hover:bg-[#eefafa] hover:text-[#087f82]">
+                          <HeartIcon />
+                          <span>{tr("Favoritos", "Favourites")}</span>
+                          {favoriteCount > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-[#e7492f] px-1 text-[10px] font-black text-white">{favoriteCount}</span>}
+                        </Link>
+                      </nav>
+                      <div className="border-t border-[#e5eff3] p-2">
+                        <button type="button" onClick={handleLogout} className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-bold text-[#a33a2a] transition hover:bg-[#fff0ec]">
+                          <SignOutIcon />
+                          <span>{tr("Sair da conta", "Sign out")}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/auth/login" className={`inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isAccountPage ? "text-[#079c9f]" : ""}`} aria-current={isAccountPage ? "page" : undefined}><UserIcon /><span>{tr("Minha conta", "My account")}</span></Link>
+              )}
+              <Link href={favoritesHref} className={`relative inline-flex h-12 items-center gap-2 px-3 text-sm font-semibold transition hover:text-[#079c9f] ${isFavoritesPage ? "text-[#079c9f]" : ""}`} aria-current={isFavoritesPage ? "page" : undefined}>
+                <HeartIcon />
+                <span>{tr("Favoritos", "Favourites")}</span>
+                {isAuthenticated && favoriteCount > 0 && (
+                  <span className="grid min-w-5 place-items-center rounded-full bg-[#e7492f] px-1 text-[10px] font-black text-white">{favoriteCount}</span>
+                )}
+              </Link>
               <Link href="/ads/create" className={`ml-2 inline-flex h-11 items-center rounded-md bg-[#ffd23f] px-5 text-sm font-black text-[#082f4f] transition hover:bg-[#f4c428] ${isCreatePage ? "ring-2 ring-[#079c9f] ring-offset-2" : ""}`}>{tr("Vender", "Sell")}</Link>
             </div>
 
@@ -314,19 +413,66 @@ export default function Navigation() {
                   <button type="button" onClick={() => setLanguage("pt")} className={`h-10 rounded-md text-sm font-bold ${language === "pt" ? "bg-[#082f4f] text-white" : "bg-[#effbfc]"}`}>Português</button>
                   <button type="button" onClick={() => setLanguage("en")} className={`h-10 rounded-md text-sm font-bold ${language === "en" ? "bg-[#082f4f] text-white" : "bg-[#effbfc]"}`}>English</button>
                 </div>
-                {isAuthenticated && <button type="button" onClick={() => { logout(); setMobileMenuOpen(false); }} className="h-11 rounded-md px-4 text-left text-sm font-semibold text-[#b23b30] sm:col-span-2">{tr("Sair", "Sign out")}</button>}
+                {isAuthenticated && (
+                  <button type="button" onClick={handleLogout} className="inline-flex h-11 items-center gap-2 rounded-md bg-[#fff0ec] px-4 text-sm font-bold text-[#a33a2a] sm:col-span-2">
+                    <SignOutIcon />
+                    <span>{tr("Sair da conta", "Sign out")}</span>
+                  </button>
+                )}
               </div>
             </div>
           )}
         </div>
       </header>
 
+      {isAuthenticated && accountMenuOpen && (
+        <>
+          <button type="button" onClick={() => setAccountMenuOpen(false)} className="fixed inset-0 z-[61] bg-[#082f4f]/20 lg:hidden" aria-label={tr("Fechar menu da conta", "Close account menu")} />
+          <section id="mobile-account-menu" className="fixed inset-x-3 bottom-[80px] z-[70] ml-auto max-w-sm overflow-hidden rounded-md border border-[#c8dde5] bg-white shadow-[0_18px_45px_rgba(7,52,79,0.24)] lg:hidden" aria-label={tr("Menu da conta", "Account menu")}>
+            <div className="border-b border-[#e5eff3] px-4 py-3">
+              <p className="text-xs font-semibold text-[#6b8190]">{tr("Sessão iniciada", "Signed in")}</p>
+              <p className="mt-1 truncate text-sm font-black text-[#082f4f]">{user?.mobile_number}</p>
+            </div>
+            <nav className="grid grid-cols-2 gap-2 p-3" aria-label={tr("Opções da conta", "Account options")}>
+              <Link href="/my-ads" onClick={() => setAccountMenuOpen(false)} className="flex min-h-12 items-center gap-2 rounded-md bg-[#f5fafb] px-3 text-sm font-bold text-[#183e58]">
+                <ProductIcon />
+                <span>{tr("Meus anúncios", "My listings")}</span>
+              </Link>
+              <Link href="/favorites" onClick={() => setAccountMenuOpen(false)} className="relative flex min-h-12 items-center gap-2 rounded-md bg-[#f5fafb] px-3 text-sm font-bold text-[#183e58]">
+                <HeartIcon />
+                <span>{tr("Favoritos", "Favourites")}</span>
+                {favoriteCount > 0 && <span className="absolute right-2 top-1 grid min-w-4 place-items-center rounded-full bg-[#e7492f] px-1 text-[9px] font-black text-white">{favoriteCount}</span>}
+              </Link>
+            </nav>
+            <div className="border-t border-[#e5eff3] p-3">
+              <button type="button" onClick={handleLogout} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#fff0ec] px-4 text-sm font-black text-[#a33a2a]">
+                <SignOutIcon />
+                <span>{tr("Sair da conta", "Sign out")}</span>
+              </button>
+            </div>
+          </section>
+        </>
+      )}
+
       <nav className="fixed inset-x-0 bottom-0 z-[60] grid h-[72px] grid-cols-5 border-t border-[#c8dde5] bg-white/95 px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_rgba(7,52,79,0.12)] backdrop-blur lg:hidden" aria-label="Ações principais">
         <Link href="/#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><ProductIcon /><span className="max-w-full truncate">{tr("Produtos", "Products")}</span></Link>
         <Link href="/#categorias" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><GridIcon /><span className="max-w-full truncate">{tr("Categorias", "Categories")}</span></Link>
         <Link href="/ads/create" className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-black sm:text-xs ${isCreatePage ? "text-[#078b8d]" : "text-[#082f4f]"}`} aria-current={isCreatePage ? "page" : undefined}><span className="grid h-8 w-8 place-items-center rounded-full bg-[#ffd23f]"><PlusIcon /></span><span className="max-w-full truncate">{tr("Anunciar", "Advertise")}</span></Link>
-        <Link href="/?featured=true#produtos" className="flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold text-[#183e58] sm:text-xs"><HeartIcon className="h-5 w-5" /><span className="max-w-full truncate">{tr("Favoritos", "Favourites")}</span></Link>
-        <Link href={isAuthenticated ? "/my-ads" : "/auth/login"} className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isAccountPage ? "text-[#079c9f]" : "text-[#183e58]"}`}><UserIcon className="h-5 w-5" /><span className="max-w-full truncate">{tr("Conta", "Account")}</span></Link>
+        <Link href={favoritesHref} className={`relative flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isFavoritesPage ? "text-[#079c9f]" : "text-[#183e58]"}`} aria-current={isFavoritesPage ? "page" : undefined}>
+          <HeartIcon className="h-5 w-5" />
+          <span className="max-w-full truncate">{tr("Favoritos", "Favourites")}</span>
+          {isAuthenticated && favoriteCount > 0 && (
+            <span className="absolute left-1/2 top-1 grid min-w-4 translate-x-1 place-items-center rounded-full bg-[#e7492f] px-1 text-[9px] font-black text-white">{favoriteCount}</span>
+          )}
+        </Link>
+        {isAuthenticated ? (
+          <button type="button" onClick={() => setAccountMenuOpen((open) => !open)} className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isAccountPage || accountMenuOpen ? "text-[#079c9f]" : "text-[#183e58]"}`} aria-expanded={accountMenuOpen} aria-controls="mobile-account-menu">
+            <UserIcon className="h-5 w-5" />
+            <span className="max-w-full truncate">{tr("Conta", "Account")}</span>
+          </button>
+        ) : (
+          <Link href="/auth/login" className={`flex min-w-0 flex-col items-center justify-center gap-1 text-[10px] font-bold sm:text-xs ${isAccountPage ? "text-[#079c9f]" : "text-[#183e58]"}`}><UserIcon className="h-5 w-5" /><span className="max-w-full truncate">{tr("Conta", "Account")}</span></Link>
+        )}
       </nav>
     </>
   );

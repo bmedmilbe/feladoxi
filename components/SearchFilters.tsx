@@ -174,7 +174,7 @@ export function SearchFilters({
             className={controlClass}
           >
             <option value="">{tr("Todos os distritos", "All districts")}</option>
-            {Object.entries(DistrictLabels).map(([key, label]) => (
+            {Object.entries(DistrictLabels).filter(([key]) => key !== "UNKNOWN").map(([key, label]) => (
               <option key={key} value={key}>
                 {language === "en" && key === "DIASPORA" ? "Diaspora" : label}
               </option>

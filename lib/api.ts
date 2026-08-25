@@ -8,6 +8,33 @@ import type {
   TemporaryAd,
   TemporaryAdImage,
 } from "@/types";
+import demoDraftManifest from "@/data/test-product-drafts.json";
+
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL?.trim() || "/api/proxy").replace(/\/$/, "");
+const REMOTE_API_ORIGIN = API_BASE_URL.startsWith("http")
+  ? new URL(API_BASE_URL).origin
+  : "https://easyadapp-production.up.railway.app";
+
+const demoContactNumber = "+2399940219";
+const demoCategoryImages: Record<string, string> = {
+  cacau: "/images/category-local-products.png",
+  cafe: "/images/category-local-products.png",
+  frutas: "/images/category-local-products.png",
+  telemoveis: "/images/category-electronics.png",
+  computadores: "/images/category-electronics.png",
+  bicicletas:
+    "https://images.unsplash.com/photo-1571068316344-75bc76f77890?auto=format&fit=crop&w=1200&q=82",
+  moveis:
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=82",
+  calcado: "/images/category-fashion.png",
+  carros:
+    "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1200&q=82",
+  casas:
+    "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=82",
+};
+
+const localProductCategories = new Set(["cacau", "cafe", "frutas"]);
+const usedProductCategories = new Set(["bicicletas", "carros"]);
 
 const windows1252Bytes: Record<number, number> = {
   0x20ac: 0x80,
@@ -80,7 +107,18 @@ function normalizeTextFields<T>(value: T): T {
 }
 
 function normalizeMediaUrl(url: string): string {
-  return url.replace(
+  const normalizedUrl = repairMojibake(url).trim();
+  if (!normalizedUrl || normalizedUrl.startsWith("/images/")) return normalizedUrl;
+
+  if (normalizedUrl.startsWith("//")) {
+    return `https:${normalizedUrl}`;
+  }
+
+  if (!/^https?:\/\//i.test(normalizedUrl)) {
+    return `${REMOTE_API_ORIGIN}/${normalizedUrl.replace(/^\/+/, "")}`;
+  }
+
+  return normalizedUrl.replace(
     /^http:\/\/([^/]+\.up\.railway\.app)(?=\/)/i,
     "https://$1",
   );
@@ -99,8 +137,6 @@ function normalizeApiResponse<T>(data: any): ApiResponse<T> {
 
   return { count: 0, next: null, previous: null, results: [] as T[] };
 }
-
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL?.trim() || "/api/proxy").replace(/\/$/, "");
 
 function buildApiUrl(path: string): string {
   const cleanPath = path.replace(/^\/+/, "");
@@ -130,6 +166,75 @@ function getStoredItem(key: string): string | null {
   return window.localStorage.getItem(key);
 }
 
+function normalizeAdImage(value: unknown, index: number): AdImage | null {
+  if (!value || typeof value !== "object") return null;
+
+  const image = normalizeTextFields(value) as Record<string, unknown>;
+  const source =
+    typeof image.image_url === "string"
+      ? image.image_url
+      : typeof image.image === "string"
+        ? image.image
+        : "";
+  const imageUrl = normalizeMediaUrl(source);
+  if (!imageUrl) return null;
+
+  return {
+    id: typeof image.id === "number" ? image.id : -(index + 1),
+    image: typeof image.image === "string" ? normalizeMediaUrl(image.image) : imageUrl,
+    image_url: imageUrl,
+    caption: typeof image.caption === "string" ? image.caption : "",
+    order: typeof image.order === "number" ? image.order : index,
+    created_at: typeof image.created_at === "string" ? image.created_at : "",
+  };
+}
+
+function normalizeAd(value: unknown): Ad {
+  const ad = normalizeTextFields(value) as Record<string, any>;
+  const customer = ad.customer && typeof ad.customer === "object" ? ad.customer : {};
+  const apiDistrict = [
+    customer.district,
+    customer.district_code,
+  ].find((district) => typeof district === "string" && district.trim());
+  const district = apiDistrict || "UNKNOWN";
+  const images = Array.isArray(ad.images)
+    ? ad.images
+        .map((image: unknown, index: number) => normalizeAdImage(image, index))
+        .filter((image: AdImage | null): image is AdImage => image !== null)
+    : [];
+
+  return {
+    ...ad,
+    customer: {
+      ...customer,
+      district,
+    },
+    images,
+  } as Ad;
+}
+
+function normalizeAdResponse(data: unknown): ApiResponse<Ad> {
+  const response = normalizeApiResponse<Record<string, unknown>>(data);
+  return {
+    ...response,
+    results: response.results.map(normalizeAd),
+  };
+}
+
+function normalizeTemporaryAd(value: unknown): TemporaryAd {
+  const draft = normalizeTextFields(value) as Record<string, any>;
+  const temporaryImages = Array.isArray(draft.temporary_images)
+    ? draft.temporary_images
+        .map((image: unknown, index: number) => normalizeAdImage(image, index))
+        .filter((image: AdImage | null): image is AdImage => image !== null)
+    : [];
+
+  return {
+    ...draft,
+    temporary_images: temporaryImages,
+  } as TemporaryAd;
+}
+
 function clearAuthStorage(): void {
   if (!isBrowser) return;
   window.localStorage.removeItem("auth_token");
@@ -143,7 +248,7 @@ function clearAuthStorage(): void {
 api.interceptors.request.use((config) => {
   const token = getStoredItem("auth_token");
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `JWT ${token}`;
   }
   return config;
 });
@@ -185,6 +290,139 @@ export async function fetchCategories(): Promise<ApiResponse<Category>> {
   };
 }
 
+async function fetchTemporaryAd(id: string): Promise<TemporaryAd> {
+  const response = await api.get<TemporaryAd>(
+    buildApiUrl(`/marketplace/guest/temporary-ads/${id}/`),
+  );
+  return normalizeTemporaryAd(response.data);
+}
+
+function buildDemoAd(
+  draft: TemporaryAd,
+  category: Category | null,
+  index: number,
+): Ad {
+  const fallbackImage = category?.slug
+    ? demoCategoryImages[category.slug]
+    : undefined;
+  const images: AdImage[] = (draft.temporary_images || []).map(
+    (image, imageIndex) => ({
+      id: image.id,
+      image: image.image,
+      image_url: image.image_url,
+      caption: image.caption || draft.product_name,
+      order: image.order ?? imageIndex,
+      created_at: image.created_at,
+    }),
+  );
+
+  if (images.length === 0 && fallbackImage) {
+    images.push({
+      id: -(index + 1),
+      image: fallbackImage,
+      image_url: fallbackImage,
+      caption: draft.product_name,
+      order: 0,
+      created_at: draft.created_at,
+    });
+  }
+
+  const expiresAt = new Date(draft.created_at);
+  expiresAt.setDate(expiresAt.getDate() + 90);
+  const categorySlug = category?.slug || "";
+  const condition: Ad["condition"] = localProductCategories.has(categorySlug)
+    ? "LOCAL"
+    : usedProductCategories.has(categorySlug)
+      ? "USED"
+      : "NEW";
+
+  return {
+    id: draft.id,
+    customer: {
+      id: -1,
+      mobile_number: demoContactNumber,
+      district: "AGUA_GRANDE",
+      whatsapp_link: `https://wa.me/${demoContactNumber.replace(/\D/g, "")}`,
+      created_at: draft.created_at,
+      updated_at: draft.updated_at,
+    },
+    category,
+    product_name: draft.product_name,
+    description: draft.description,
+    price: draft.price,
+    condition,
+    status: "ACTIVE",
+    is_featured: index < 2,
+    expires_at: expiresAt.toISOString(),
+    created_at: draft.created_at,
+    updated_at: draft.updated_at,
+    images,
+    is_demo: true,
+  };
+}
+
+function filterAds(ads: Ad[], filters: FilterState): Ad[] {
+  const search = filters.search.trim().toLocaleLowerCase("pt");
+
+  return ads.filter((ad) => {
+    const matchesSearch =
+      !search ||
+      `${ad.product_name} ${ad.description} ${ad.category?.name || ""}`
+        .toLocaleLowerCase("pt")
+        .includes(search);
+    const matchesCategory =
+      !filters.category ||
+      ad.category?.slug === filters.category ||
+      String(ad.category?.id) === filters.category;
+    const matchesDistrict =
+      !filters.district || ad.customer.district === filters.district;
+    const matchesCondition =
+      !filters.condition || ad.condition === filters.condition;
+    const matchesFeatured =
+      !filters.featured || String(ad.is_featured) === filters.featured;
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesDistrict &&
+      matchesCondition &&
+      matchesFeatured
+    );
+  });
+}
+
+async function fetchDemoAds(filters: FilterState): Promise<ApiResponse<Ad>> {
+  const [categories, draftResults] = await Promise.all([
+    fetchCategories(),
+    Promise.allSettled(
+      demoDraftManifest.products.map((product) => fetchTemporaryAd(product.id)),
+    ),
+  ]);
+  const categoryMap = new Map(
+    categories.results.map((category) => [category.id, category]),
+  );
+  const demoAds = draftResults.flatMap((result, index) => {
+    if (result.status !== "fulfilled") return [];
+    return [
+      buildDemoAd(
+        result.value,
+        result.value.category
+          ? categoryMap.get(result.value.category) || null
+          : null,
+        index,
+      ),
+    ];
+  });
+  const filteredAds = filterAds(demoAds, filters);
+
+  return {
+    count: filteredAds.length,
+    next: null,
+    previous: null,
+    results: filteredAds,
+  };
+}
+
 // Ads
 export async function fetchAds(filters: FilterState): Promise<ApiResponse<Ad>> {
   const params = new URLSearchParams();
@@ -196,12 +434,54 @@ export async function fetchAds(filters: FilterState): Promise<ApiResponse<Ad>> {
 
   const path = `/marketplace/ads/?${params.toString()}`;
   const response = await api.get<any>(buildApiUrl(path));
-  return normalizeApiResponse<Ad>(response.data);
+  const publishedResponse = normalizeAdResponse(response.data);
+  const filteredPublishedAds = filterAds(publishedResponse.results, filters);
+  const publishedAds = {
+    ...publishedResponse,
+    count: filteredPublishedAds.length,
+    next: null,
+    previous: null,
+    results: filteredPublishedAds,
+  };
+  if (publishedAds.results.length > 0) return publishedAds;
+
+  const hasFilters = Array.from(params.keys()).length > 0;
+  if (hasFilters) {
+    const allPublishedResponse = await api.get<any>(
+      buildApiUrl("/marketplace/ads/"),
+    );
+    const allPublishedAds = normalizeAdResponse(allPublishedResponse.data);
+    if (allPublishedAds.count > 0) return publishedAds;
+  }
+
+  try {
+    return await fetchDemoAds(filters);
+  } catch {
+    return publishedAds;
+  }
 }
 
-export async function fetchAd(id: number): Promise<Ad> {
+export async function fetchAd(id: number | string): Promise<Ad> {
+  const stringId = String(id);
+  const isDemoDraft = demoDraftManifest.products.some(
+    (product) => product.id === stringId,
+  );
+
+  if (isDemoDraft) {
+    const [draft, categories] = await Promise.all([
+      fetchTemporaryAd(stringId),
+      fetchCategories(),
+    ]);
+    const category =
+      categories.results.find((item) => item.id === draft.category) || null;
+    const index = demoDraftManifest.products.findIndex(
+      (product) => product.id === stringId,
+    );
+    return buildDemoAd(draft, category, index);
+  }
+
   const response = await api.get<Ad>(buildApiUrl(`/marketplace/ads/${id}/`));
-  return normalizeTextFields(response.data);
+  return normalizeAd(response.data);
 }
 
 export async function createAd(data: FormData): Promise<Ad> {
@@ -210,16 +490,16 @@ export async function createAd(data: FormData): Promise<Ad> {
     data,
     multipartConfig,
   );
-  return response.data;
+  return normalizeAd(response.data);
 }
 
 export async function updateAd(id: number, data: FormData): Promise<Ad> {
-  const response = await api.put<Ad>(
-    buildApiUrl(`/marketplace/ads/${id}/`),
+  const response = await api.patch<Ad>(
+    buildApiUrl(`/marketplace/manage/ads/${id}/`),
     data,
     multipartConfig,
   );
-  return response.data;
+  return normalizeAd(response.data);
 }
 
 export async function uploadAdImage(
@@ -237,11 +517,13 @@ export async function uploadAdImage(
     multipartConfig,
   );
 
-  return normalizeTextFields(response.data);
+  const normalizedImage = normalizeAdImage(response.data, order);
+  if (!normalizedImage) throw new Error("The API did not return a valid image URL");
+  return normalizedImage;
 }
 
-export async function deleteAd(id: number): Promise<void> {
-  await api.delete(buildApiUrl(`/marketplace/ads/${id}/`));
+export async function deleteAd(id: Ad["id"]): Promise<void> {
+  await api.delete(buildApiUrl(`/marketplace/manage/ads/${id}/`));
 }
 
 // Temporary Ads (Guest Flow)
@@ -253,7 +535,7 @@ export async function createTemporaryAd(
     data,
     multipartConfig,
   );
-  return normalizeTextFields(response.data);
+  return normalizeTemporaryAd(response.data);
 }
 
 export async function uploadTemporaryAdImage(
@@ -273,7 +555,9 @@ export async function uploadTemporaryAdImage(
     multipartConfig,
   );
 
-  return normalizeTextFields(response.data);
+  const normalizedImage = normalizeAdImage(response.data, order);
+  if (!normalizedImage) throw new Error("The API did not return a valid image URL");
+  return normalizedImage;
 }
 
 export async function login(payload: {
@@ -294,6 +578,7 @@ export async function fetchCurrentUser(): Promise<{
   id: number;
   mobile_number: string;
   username: string;
+  district?: string;
 }> {
   const response = await api.get(buildApiUrl("/auth/users/me/"));
   return normalizeTextFields(response.data);
@@ -304,7 +589,7 @@ export async function publishTemporaryAd(tempAdId: string): Promise<Ad> {
     buildApiUrl("/marketplace/manage/ads/"),
     { temp_ad_id: tempAdId },
   );
-  return normalizeTextFields(response.data);
+  return normalizeAd(response.data);
 }
 
 export async function register(
@@ -316,6 +601,7 @@ export async function register(
 }> {
   const response = await api.post(buildApiUrl("/auth/users/"), {
     mobile_number,
+    district,
   });
   if (isBrowser) {
     window.localStorage.setItem("district", district);
