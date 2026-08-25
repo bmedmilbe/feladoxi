@@ -90,6 +90,8 @@ export function AdDetail({ ad }: AdDetailProps) {
     ? { ACTIVE: "Available", SUSPENDED: "Suspended", EXPIRED: "Expired" }
     : { ACTIVE: "Disponível", SUSPENDED: "Suspenso", EXPIRED: "Expirado" };
   const isAvailable = ad.status === "ACTIVE";
+  const isFeatured = ad.is_featured_active;
+  const isOnSale = ad.is_on_sale && Boolean(ad.original_price && ad.price);
 
   useEffect(() => {
     setShareUrl(window.location.href);
@@ -150,7 +152,7 @@ export function AdDetail({ ad }: AdDetailProps) {
                 </div>
               )}
 
-              {ad.is_featured && (
+              {isFeatured && (
                 <span className="absolute left-4 top-4 rounded-md bg-[#fff3bf] px-3 py-1.5 text-xs font-black text-[#725500] shadow-sm">
                   {tr("Produto em destaque", "Featured product")}
                 </span>
@@ -210,7 +212,19 @@ export function AdDetail({ ad }: AdDetailProps) {
             <h1 className="mt-5 break-words font-serif text-4xl font-semibold leading-tight text-[#07382d] sm:text-5xl">
               {ad.product_name}
             </h1>
-            <p className="mt-4 text-3xl font-black text-[#e7492f] sm:text-4xl">{formatPrice(ad.price, language)}</p>
+            <div className="mt-4 flex flex-wrap items-end gap-x-3 gap-y-1">
+              {isOnSale && (
+                <p className="text-lg font-bold text-[#7b8c86] line-through sm:text-xl">
+                  {formatPrice(ad.original_price, language)}
+                </p>
+              )}
+              <p className="text-3xl font-black text-[#e7492f] sm:text-4xl">{formatPrice(ad.price, language)}</p>
+              {isOnSale && (
+                <span className="mb-1 rounded-md bg-[#ffe8df] px-2.5 py-1 text-sm font-black text-[#b53828]">
+                  -{ad.discount_percentage}%
+                </span>
+              )}
+            </div>
 
             {ad.description ? (
               <div className="mt-6 border-t border-[#d8e7dc] pt-5">

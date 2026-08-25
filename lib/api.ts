@@ -202,6 +202,23 @@ function normalizeAd(value: unknown): Ad {
         .map((image: unknown, index: number) => normalizeAdImage(image, index))
         .filter((image: AdImage | null): image is AdImage => image !== null)
     : [];
+  const price = ad.price === null || ad.price === undefined ? null : String(ad.price);
+  const originalPrice =
+    ad.original_price === null || ad.original_price === undefined
+      ? null
+      : String(ad.original_price);
+  const isOnSale = Boolean(
+    originalPrice && price && Number(originalPrice) > Number(price),
+  );
+  const discountPercentage = isOnSale
+    ? Math.round((1 - Number(price) / Number(originalPrice)) * 100)
+    : 0;
+  const featuredUntil =
+    typeof ad.featured_until === "string" ? ad.featured_until : null;
+  const isFeaturedActive = Boolean(
+    ad.is_featured &&
+      (!featuredUntil || new Date(featuredUntil).getTime() > Date.now()),
+  );
 
   return {
     ...ad,
@@ -209,6 +226,19 @@ function normalizeAd(value: unknown): Ad {
       ...customer,
       district,
     },
+    price,
+    original_price: originalPrice,
+    featured_until: featuredUntil,
+    is_featured_active:
+      typeof ad.is_featured_active === "boolean"
+        ? ad.is_featured_active
+        : isFeaturedActive,
+    is_on_sale:
+      typeof ad.is_on_sale === "boolean" ? ad.is_on_sale : isOnSale,
+    discount_percentage:
+      typeof ad.discount_percentage === "number"
+        ? ad.discount_percentage
+        : discountPercentage,
     images,
   } as Ad;
 }
@@ -330,11 +360,13 @@ function buildDemoAd(
   const expiresAt = new Date(draft.created_at);
   expiresAt.setDate(expiresAt.getDate() + 90);
   const categorySlug = category?.slug || "";
-  const condition: Ad["condition"] = localProductCategories.has(categorySlug)
-    ? "LOCAL"
-    : usedProductCategories.has(categorySlug)
-      ? "USED"
-      : "NEW";
+  const condition: Ad["condition"] =
+    draft.condition ||
+    (localProductCategories.has(categorySlug)
+      ? "LOCAL"
+      : usedProductCategories.has(categorySlug)
+        ? "USED"
+        : "NEW");
 
   return {
     id: draft.id,
@@ -350,9 +382,25 @@ function buildDemoAd(
     product_name: draft.product_name,
     description: draft.description,
     price: draft.price,
+    original_price: draft.original_price,
     condition,
     status: "ACTIVE",
     is_featured: index < 2,
+    featured_until: null,
+    is_featured_active: index < 2,
+    is_on_sale: Boolean(
+      draft.original_price &&
+        draft.price &&
+        Number(draft.original_price) > Number(draft.price),
+    ),
+    discount_percentage:
+      draft.original_price &&
+      draft.price &&
+      Number(draft.original_price) > Number(draft.price)
+        ? Math.round(
+            (1 - Number(draft.price) / Number(draft.original_price)) * 100,
+          )
+        : 0,
     expires_at: expiresAt.toISOString(),
     created_at: draft.created_at,
     updated_at: draft.updated_at,
@@ -379,7 +427,8 @@ function filterAds(ads: Ad[], filters: FilterState): Ad[] {
     const matchesCondition =
       !filters.condition || ad.condition === filters.condition;
     const matchesFeatured =
-      !filters.featured || String(ad.is_featured) === filters.featured;
+      !filters.featured ||
+      String(ad.is_featured_active) === filters.featured;
 
     return (
       matchesSearch &&

@@ -26,6 +26,7 @@ type CreateAdFormData = {
   category: string;
   condition: AdCondition;
   price: string;
+  original_price: string;
   images: File[];
 };
 
@@ -121,6 +122,7 @@ export default function CreateAdPage() {
     category: "",
     condition: "USED",
     price: "",
+    original_price: "",
     images: [],
   });
 
@@ -213,6 +215,20 @@ export default function CreateAdPage() {
       return;
     }
 
+    if (
+      formData.original_price.trim() &&
+      (!formData.price.trim() ||
+        Number(formData.original_price) <= Number(formData.price))
+    ) {
+      toast.error(
+        tr(
+          "O preço anterior deve ser maior que o preço promocional",
+          "The original price must be greater than the sale price",
+        ),
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage(tr("A guardar anúncio...", "Saving listing..."));
 
@@ -221,8 +237,12 @@ export default function CreateAdPage() {
       submitData.append("product_name", formData.product_name.trim());
       submitData.append("description", formData.description.trim());
       submitData.append("category", formData.category);
+      submitData.append("condition", formData.condition);
       if (formData.price.trim()) {
         submitData.append("price", formData.price.trim());
+      }
+      if (formData.original_price.trim()) {
+        submitData.append("original_price", formData.original_price.trim());
       }
 
       const response = await createTemporaryAd(submitData);
@@ -384,7 +404,7 @@ export default function CreateAdPage() {
                     htmlFor="price"
                     className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
                   >
-                    {tr("Preço em STN", "Price in STN")}
+                    {tr("Preço promocional em STN", "Sale price in STN")}
                   </label>
                   <input
                     id="price"
@@ -396,6 +416,32 @@ export default function CreateAdPage() {
                     placeholder="Ex: 150000"
                     className={fieldClass}
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="original_price"
+                    className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]"
+                  >
+                    {tr("Preço anterior em STN", "Original price in STN")}
+                  </label>
+                  <input
+                    id="original_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.original_price}
+                    onChange={(event) =>
+                      updateField("original_price", event.target.value)
+                    }
+                    placeholder={tr("Opcional, para mostrar desconto", "Optional, to show a discount")}
+                    className={fieldClass}
+                  />
+                  {formData.original_price && formData.price && Number(formData.original_price) > Number(formData.price) && (
+                    <p className="mt-2 text-xs font-bold text-[#e7492f]">
+                      {Math.round((1 - Number(formData.price) / Number(formData.original_price)) * 100)}% {tr("de desconto", "off")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">

@@ -87,6 +87,12 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
   const { isAuthenticated } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorite = isFavorite(ad.id);
+  const isFeatured = featured || ad.is_featured_active;
+  const isOnSale = ad.is_on_sale && Boolean(ad.original_price && ad.price);
+  const priceFormatter = new Intl.NumberFormat(
+    language === "en" ? "en-GB" : "pt-ST",
+    { style: "currency", currency: "STN" },
+  );
   const categoryFallback = ad.category?.slug
     ? categoryFallbackImages[ad.category.slug]
     : null;
@@ -116,7 +122,7 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
   return (
     <article
       className={`group relative h-full overflow-hidden rounded-lg border bg-white shadow-[0_14px_32px_rgba(7,52,79,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(7,52,79,0.14)] ${
-        featured ? "border-[#08a6a6]" : "border-[#dceaf0]"
+        isFeatured ? "border-[#08a6a6]" : "border-[#dceaf0]"
       }`}
     >
       <Link href={`/ads/${ad.id}`} className="block h-full">
@@ -153,8 +159,13 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
               {conditionLabel}
             </span>
           )}
+          {isOnSale && (
+            <span className="absolute left-2 top-2 rounded-md bg-[#e7492f] px-2 py-1 text-[10px] font-black text-white shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-xs">
+              -{ad.discount_percentage}%
+            </span>
+          )}
           {ad.is_demo && (
-            <span className="absolute left-2 top-2 rounded-md bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-xs">
+            <span className={`absolute left-2 rounded-md bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-sm sm:left-3 sm:px-3 sm:text-xs ${isOnSale ? "top-10 sm:top-12" : "top-2 sm:top-3"}`}>
               {tr("Demonstração", "Demo")}
             </span>
           )}
@@ -165,7 +176,7 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
             <span className="min-w-0 truncate rounded-full bg-[#e4f7f7] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#078b8d] sm:px-3 sm:text-xs sm:tracking-[0.12em]">
               {ad.category ? categoryName(ad.category.slug, ad.category.name) : tr("Sem categoria", "Uncategorised")}
             </span>
-            {featured && (
+            {isFeatured && (
               <span className="hidden rounded-full bg-[#ffd23f] px-3 py-1 text-xs font-bold text-[#082f4f] sm:inline-flex">
                 {tr("Destaque", "Featured")}
               </span>
@@ -183,12 +194,14 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
 
           <div className="mt-3 flex items-end justify-between gap-2 border-t border-[#edf4ef] pt-3 sm:mt-4 sm:gap-3 sm:pt-4">
             <div>
+              {isOnSale && (
+                <p className="text-[10px] font-semibold leading-tight text-[#7b8c86] line-through sm:text-xs">
+                  {priceFormatter.format(Number(ad.original_price))}
+                </p>
+              )}
               {ad.price && (
-                <p className="text-base font-black leading-tight text-[#082f4f] sm:text-xl">
-                  {new Intl.NumberFormat("pt-ST", {
-                    style: "currency",
-                    currency: "STN",
-                  }).format(Number(ad.price))}
+                <p className={`text-base font-black leading-tight sm:text-xl ${isOnSale ? "text-[#e7492f]" : "text-[#082f4f]"}`}>
+                  {priceFormatter.format(Number(ad.price))}
                 </p>
               )}
               <p className="mt-1 hidden text-xs text-[#6d8179] sm:block">

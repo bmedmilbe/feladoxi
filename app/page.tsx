@@ -192,8 +192,8 @@ function HomePageContent() {
   }, [isLoading, searchParamsString]);
 
   // Separate featured and regular ads
-  const featuredAds = ads?.results?.filter((ad) => ad.is_featured) || [];
-  const regularAds = ads?.results?.filter((ad) => !ad.is_featured) || [];
+  const featuredAds = ads?.results?.filter((ad) => ad.is_featured_active) || [];
+  const regularAds = ads?.results?.filter((ad) => !ad.is_featured_active) || [];
   const adCount = ads?.results?.length || 0;
   const showingDemoAds = Boolean(ads?.results?.some((ad) => ad.is_demo));
   const hasActiveFilters =

@@ -369,7 +369,7 @@ export default function MyAdsPage() {
                           <span className="mt-1 text-xs">{tr("Adicione uma na edição", "Add one when editing")}</span>
                         </div>
                       )}
-                      {ad.is_featured && (
+                      {ad.is_featured_active && (
                         <span className="absolute left-3 top-3 rounded-md bg-[#fff3bf] px-2 py-1 text-xs font-bold text-[#725500] shadow-sm">
                           {tr("Destaque", "Featured")}
                         </span>

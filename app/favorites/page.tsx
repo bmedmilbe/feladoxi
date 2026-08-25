@@ -71,7 +71,7 @@ export default function FavoritesPage() {
         ) : (
           <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {favorites.map((ad) => (
-              <AdCard key={ad.id} ad={ad} featured={ad.is_featured} />
+              <AdCard key={ad.id} ad={ad} featured={ad.is_featured_active} />
             ))}
           </div>
         )}

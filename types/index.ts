@@ -64,9 +64,14 @@ export interface Ad {
   product_name: string;
   description: string;
   price: string | null;
+  original_price: string | null;
   condition: AdCondition;
   status: "ACTIVE" | "SUSPENDED" | "EXPIRED";
   is_featured: boolean;
+  featured_until: string | null;
+  is_featured_active: boolean;
+  is_on_sale: boolean;
+  discount_percentage: number;
   expires_at: string;
   created_at: string;
   updated_at: string;
@@ -80,6 +85,8 @@ export interface TemporaryAd {
   product_name: string;
   description: string;
   price: string | null;
+  original_price: string | null;
+  condition: AdCondition;
   temporary_images: TemporaryAdImage[];
   created_at: string;
   updated_at: string;

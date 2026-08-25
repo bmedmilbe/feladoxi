@@ -41,6 +41,18 @@ const statusLabels = {
   EXPIRED: "Expirado",
 };
 
+function dateInputValue(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+}
+
+function defaultFeaturedDate() {
+  const date = new Date();
+  date.setDate(date.getDate() + 7);
+  return date.toISOString().slice(0, 10);
+}
+
 export default function EditAdPage() {
   const router = useRouter();
   const params = useParams();
@@ -55,6 +67,9 @@ export default function EditAdPage() {
     description: "",
     category: "",
     price: "",
+    original_price: "",
+    is_featured: false,
+    featured_until: "",
   });
   const [newImages, setNewImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -97,6 +112,11 @@ export default function EditAdPage() {
       description: ad.description || "",
       category: ad.category ? String(ad.category.id) : "",
       price: ad.price || "",
+      original_price: ad.original_price || "",
+      is_featured: ad.is_featured_active,
+      featured_until: ad.is_featured_active
+        ? dateInputValue(ad.featured_until) || defaultFeaturedDate()
+        : "",
     });
   }, [ad]);
 
@@ -161,6 +181,25 @@ export default function EditAdPage() {
       return;
     }
 
+    if (
+      formData.original_price.trim() &&
+      (!formData.price.trim() ||
+        Number(formData.original_price) <= Number(formData.price))
+    ) {
+      toast.error(
+        tr(
+          "O preço anterior deve ser maior que o preço promocional",
+          "The original price must be greater than the sale price",
+        ),
+      );
+      return;
+    }
+
+    if (formData.is_featured && !formData.featured_until) {
+      toast.error(tr("Escolha até quando o produto ficará em destaque", "Choose when the featured period ends"));
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage(tr("A atualizar anúncio...", "Updating listing..."));
 
@@ -168,8 +207,16 @@ export default function EditAdPage() {
       const submitData = new FormData();
       submitData.append("product_name", formData.product_name.trim());
       submitData.append("description", formData.description.trim());
-      submitData.append("category", formData.category);
+      submitData.append("category_id", formData.category);
       submitData.append("price", formData.price.trim());
+      submitData.append("original_price", formData.original_price.trim());
+      submitData.append("is_featured", String(formData.is_featured));
+      submitData.append(
+        "featured_until",
+        formData.is_featured
+          ? `${formData.featured_until}T23:59:59.000Z`
+          : "",
+      );
 
       await updateAd(id, submitData);
 
@@ -286,7 +333,7 @@ export default function EditAdPage() {
 
               <div className="min-w-0">
                 <label htmlFor="price" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
-                  {tr("Preço em STN", "Price in STN")}
+                  {tr("Preço promocional em STN", "Sale price in STN")}
                 </label>
                 <input
                   id="price"
@@ -298,6 +345,69 @@ export default function EditAdPage() {
                   placeholder="Ex: 150000"
                   className={fieldClass}
                 />
+              </div>
+
+              <div className="min-w-0">
+                <label htmlFor="original_price" className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-[#52685f]">
+                  {tr("Preço anterior em STN", "Original price in STN")}
+                </label>
+                <input
+                  id="original_price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.original_price}
+                  onChange={(event) => setFormData((current) => ({ ...current, original_price: event.target.value }))}
+                  placeholder={tr("Opcional, para mostrar desconto", "Optional, to show a discount")}
+                  className={fieldClass}
+                />
+                {formData.original_price && formData.price && Number(formData.original_price) > Number(formData.price) && (
+                  <p className="mt-2 text-xs font-bold text-[#e7492f]">
+                    {Math.round((1 - Number(formData.price) / Number(formData.original_price)) * 100)}% {tr("de desconto", "off")}
+                  </p>
+                )}
+              </div>
+
+              <div className="min-w-0 md:col-span-2">
+                <div className="flex flex-col gap-4 rounded-md border border-[#d8e7dc] bg-[#f8fcf9] p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <label className="flex cursor-pointer items-start gap-3" htmlFor="is_featured">
+                    <input
+                      id="is_featured"
+                      type="checkbox"
+                      checked={formData.is_featured}
+                      onChange={(event) =>
+                        setFormData((current) => ({
+                          ...current,
+                          is_featured: event.target.checked,
+                          featured_until: event.target.checked
+                            ? current.featured_until || defaultFeaturedDate()
+                            : "",
+                        }))
+                      }
+                      className="mt-0.5 h-5 w-5 accent-[#0b8a5f]"
+                    />
+                    <span>
+                      <span className="block text-sm font-black text-[#0b2f27]">{tr("Colocar em destaque", "Feature this product")}</span>
+                      <span className="mt-1 block text-xs leading-5 text-[#52685f]">{tr("O produto aparece primeiro e recebe um selo na vitrine.", "The product appears first and gets a marketplace badge.")}</span>
+                    </span>
+                  </label>
+                  {formData.is_featured && (
+                    <div className="w-full shrink-0 sm:w-52">
+                      <label htmlFor="featured_until" className="mb-1 block text-xs font-black uppercase text-[#52685f]">
+                        {tr("Em destaque até", "Featured until")}
+                      </label>
+                      <input
+                        id="featured_until"
+                        type="date"
+                        required
+                        min={new Date().toISOString().slice(0, 10)}
+                        value={formData.featured_until}
+                        onChange={(event) => setFormData((current) => ({ ...current, featured_until: event.target.value }))}
+                        className={fieldClass}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="min-w-0 md:col-span-2">
