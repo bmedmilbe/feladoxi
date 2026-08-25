@@ -78,6 +78,24 @@ export function SearchFilters({
   };
 
   const selectSuggestion = (suggestion: SearchSuggestion) => {
+    if (suggestion.district) {
+      onFilterChange({
+        ...filters,
+        search: "",
+        district: suggestion.district,
+      });
+      return;
+    }
+
+    if (suggestion.condition) {
+      onFilterChange({
+        ...filters,
+        search: "",
+        condition: suggestion.condition,
+      });
+      return;
+    }
+
     if (suggestion.categorySlug) {
       onFilterChange({
         ...filters,
@@ -124,7 +142,7 @@ export function SearchFilters({
           <div className="relative">
             <SearchAutocomplete
               id="filter-search"
-              placeholder={tr("Pesquisar por nome...", "Search by name...")}
+              placeholder={tr("Nome, condição ou distrito...", "Name, condition or district...")}
               value={filters.search}
               onChange={(value) => handleChange("search", value)}
               onSuggestionSelect={selectSuggestion}

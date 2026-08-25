@@ -4,7 +4,12 @@ export interface User {
   mobile_number: string;
   district: District;
   is_active: boolean;
+  is_staff: boolean;
   date_joined: string;
+}
+
+export interface AdminUser extends User {
+  ad_count: number;
 }
 
 export interface CustomerProfile {
@@ -21,6 +26,48 @@ export interface ApiResponse<T> {
   next: null | string;
   previous: null | string;
   results: T[];
+}
+
+export type AdvertisingRequestStatus =
+  | "NEW"
+  | "CONTACTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "COMPLETED";
+
+export interface AdvertisingRequest {
+  id: number;
+  campaign_type: "BRAND" | "PRODUCT";
+  campaign_name: string;
+  contact_name: string;
+  contact_phone: string;
+  objective: string;
+  placements: string[];
+  duration: string;
+  preferred_start_date: string | null;
+  target_url: string;
+  description: string;
+  contact_destination: string;
+  status: AdvertisingRequestStatus;
+  admin_notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminDashboard {
+  ads: {
+    total: number;
+    active: number;
+    featured: number;
+  };
+  categories: number;
+  users: number;
+  temporary_ads: number;
+  advertising_requests: {
+    total: number;
+    new: number;
+  };
+  recent_requests: AdvertisingRequest[];
 }
 
 export interface Category {

@@ -24,6 +24,7 @@ import {
   updateAd,
   uploadAdImage,
 } from "@/lib/api";
+import { formatProductName } from "@/lib/text";
 import type { ApiResponse, Category } from "@/types";
 
 const maxImages = 10;
@@ -205,7 +206,7 @@ export default function EditAdPage() {
 
     try {
       const submitData = new FormData();
-      submitData.append("product_name", formData.product_name.trim());
+      submitData.append("product_name", formatProductName(formData.product_name));
       submitData.append("description", formData.description.trim());
       submitData.append("category_id", formData.category);
       submitData.append("price", formData.price.trim());

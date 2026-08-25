@@ -3,15 +3,17 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAds, fetchCategories } from "@/lib/api";
-import type { Ad, ApiResponse, Category } from "@/types";
+import { DistrictLabels, type Ad, type AdCondition, type ApiResponse, type Category, type District } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
 
 export interface SearchSuggestion {
   id: string;
   label: string;
   detail: string;
-  type: "product" | "category";
+  type: "product" | "category" | "condition" | "district";
   categorySlug?: string;
+  condition?: AdCondition;
+  district?: District;
 }
 
 interface SearchAutocompleteProps {
@@ -55,11 +57,61 @@ function CategoryIcon() {
   );
 }
 
+function ConditionIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 5h14v14H5V5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="m8.5 12 2.2 2.2 4.8-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function DistrictIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M19 9.5c0 5.2-7 11.5-7 11.5S5 14.7 5 9.5a7 7 0 1 1 14 0Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="12" cy="9.5" r="2.3" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
 function normalizeSearchText(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+const conditionSearchTerms: Record<AdCondition, string[]> = {
+  NEW: ["novo", "nova", "novos", "novas", "new"],
+  USED: ["usado", "usada", "usados", "usadas", "used"],
+  IMPORTED: ["importado", "importada", "importados", "importadas", "imported"],
+  LOCAL: ["local", "produzido em sao tome", "produzida em sao tome", "made in sao tome"],
+};
+
+const districtSearchTerms: Record<Exclude<District, "UNKNOWN">, string[]> = {
+  AGUA_GRANDE: ["agua grande"],
+  CANTAGALO: ["cantagalo"],
+  CAUE: ["caue"],
+  LEMBA: ["lemba"],
+  LOBATA: ["lobata"],
+  ME_ZOCHI: ["me zochi", "me-zochi"],
+  PAGUE: ["pague", "principe"],
+  DIASPORA: ["diaspora"],
+};
+
+export function conditionFromSearch(value: string): AdCondition | null {
+  const normalizedValue = normalizeSearchText(value.trim());
+  const match = (Object.entries(conditionSearchTerms) as Array<[AdCondition, string[]]>)
+    .find(([, terms]) => terms.includes(normalizedValue));
+  return match?.[0] || null;
+}
+
+export function districtFromSearch(value: string): District | null {
+  const normalizedValue = normalizeSearchText(value.trim());
+  const match = (Object.entries(districtSearchTerms) as Array<[Exclude<District, "UNKNOWN">, string[]]>)
+    .find(([, terms]) => terms.includes(normalizedValue));
+  return match?.[0] || null;
 }
 
 export function SearchAutocomplete({
@@ -72,7 +124,7 @@ export function SearchAutocomplete({
   iconClassName = "left-4",
   autoComplete = "off",
 }: SearchAutocompleteProps) {
-  const { tr, categoryName } = useLanguage();
+  const { language, tr, categoryName } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [debouncedSearch, setDebouncedSearch] = useState(value.trim());
@@ -110,6 +162,38 @@ export function SearchAutocomplete({
   const suggestions = useMemo<SearchSuggestion[]>(() => {
     if (!normalizedSearch) return [];
 
+    const conditionLabels: Record<AdCondition, string> = {
+      NEW: tr("Novo", "New"),
+      USED: tr("Usado", "Used"),
+      IMPORTED: tr("Importado", "Imported"),
+      LOCAL: tr("Produzido em São Tomé", "Made in São Tomé"),
+    };
+    const conditions = (Object.entries(conditionSearchTerms) as Array<[AdCondition, string[]]>)
+      .filter(([condition, terms]) =>
+        normalizeSearchText(`${conditionLabels[condition]} ${terms.join(" ")}`).includes(normalizedSearch),
+      )
+      .slice(0, 2)
+      .map(([condition]) => ({
+        id: `condition-${condition}`,
+        label: conditionLabels[condition],
+        detail: tr("Condição do produto", "Product condition"),
+        type: "condition" as const,
+        condition,
+      }));
+
+    const districts = (Object.entries(districtSearchTerms) as Array<[Exclude<District, "UNKNOWN">, string[]]>)
+      .filter(([district, terms]) =>
+        normalizeSearchText(`${DistrictLabels[district]} ${terms.join(" ")}`).includes(normalizedSearch),
+      )
+      .slice(0, 2)
+      .map(([district]) => ({
+        id: `district-${district}`,
+        label: language === "en" && district === "DIASPORA" ? "Diaspora" : DistrictLabels[district],
+        detail: tr("Distrito", "District"),
+        type: "district" as const,
+        district,
+      }));
+
     const categories = (categoryData?.results || [])
       .filter((category) =>
         normalizeSearchText(`${category.name} ${categoryName(category.slug, category.name)} ${category.description || ""}`).includes(
@@ -137,7 +221,7 @@ export function SearchAutocomplete({
         seenProducts.add(key);
         return true;
       })
-      .slice(0, Math.max(3, 6 - categories.length))
+      .slice(0, Math.max(2, 6 - categories.length - conditions.length - districts.length))
       .map((ad) => ({
         id: `product-${ad.id}`,
         label: ad.product_name,
@@ -145,8 +229,8 @@ export function SearchAutocomplete({
         type: "product" as const,
       }));
 
-    return [...products, ...categories].slice(0, 6);
-  }, [categoryData?.results, categoryName, normalizedSearch, productData?.results, tr]);
+    return [...conditions, ...districts, ...products, ...categories].slice(0, 6);
+  }, [categoryData?.results, categoryName, language, normalizedSearch, productData?.results, tr]);
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -243,7 +327,13 @@ export function SearchAutocomplete({
               }`}
             >
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#eef8f1] text-[#0b3b2f]">
-                {suggestion.type === "product" ? <ProductIcon /> : <CategoryIcon />}
+                {suggestion.type === "product"
+                  ? <ProductIcon />
+                  : suggestion.type === "condition"
+                    ? <ConditionIcon />
+                    : suggestion.type === "district"
+                      ? <DistrictIcon />
+                      : <CategoryIcon />}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold">
@@ -254,7 +344,13 @@ export function SearchAutocomplete({
                 </span>
               </span>
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-[#e7492f]">
-                {suggestion.type === "product" ? tr("Produto", "Product") : tr("Ver", "View")}
+                {suggestion.type === "product"
+                  ? tr("Produto", "Product")
+                  : suggestion.type === "condition"
+                    ? tr("Filtrar", "Filter")
+                    : suggestion.type === "district"
+                      ? tr("Local", "Location")
+                      : tr("Ver", "View")}
               </span>
             </button>
           ))}

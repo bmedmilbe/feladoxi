@@ -93,6 +93,14 @@ function BenefitIcon({ index }: { index: number }) {
   );
 }
 
+function FeaturedStarIcon() {
+  return (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.5 1.1 6.3-5.6-3-5.6 3 1.1-6.3-4.6-4.5 6.3-.9L12 2.8Z" />
+    </svg>
+  );
+}
+
 function ProductSkeletonGrid() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -336,16 +344,24 @@ function HomePageContent() {
         ) : ads?.results && adCount > 0 ? (
           <div className="space-y-10">
             {featuredAds.length > 0 && (
-              <section>
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
+              <section className="border-y border-[#efd978] bg-[#fffdf3] px-3 py-6 sm:px-5 sm:py-7">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#ffd23f] text-[#082f4f] shadow-[0_8px_18px_rgba(174,128,0,0.18)]">
+                      <FeaturedStarIcon />
+                    </span>
+                    <div className="min-w-0">
                     <h3 className="text-xl font-black text-[#082f4f]">
                       {tr("Em destaque", "Featured")}
                     </h3>
                     <p className="mt-1 text-sm text-[#657d8d]">
                       {tr("Produtos com maior visibilidade na plataforma.", "Products with greater visibility on the platform.")}
                     </p>
+                    </div>
                   </div>
+                  <span className="shrink-0 rounded-md border border-[#e4c44b] bg-white px-3 py-2 text-xs font-black text-[#725500]">
+                    {featuredAds.length}
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                   {featuredAds.map((ad) => (

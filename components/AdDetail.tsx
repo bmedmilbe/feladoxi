@@ -69,6 +69,14 @@ function MessageIcon() {
   );
 }
 
+function GalleryArrowIcon({ direction }: { direction: "previous" | "next" }) {
+  return (
+    <svg className={`h-5 w-5 ${direction === "next" ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function AdDetail({ ad }: AdDetailProps) {
   const { language, tr, categoryName } = useLanguage();
   const [selectedImage, setSelectedImage] = useState(0);
@@ -92,6 +100,14 @@ export function AdDetail({ ad }: AdDetailProps) {
   const isAvailable = ad.status === "ACTIVE";
   const isFeatured = ad.is_featured_active;
   const isOnSale = ad.is_on_sale && Boolean(ad.original_price && ad.price);
+
+  const showPreviousImage = () => {
+    setSelectedImage((current) => (current - 1 + images.length) % images.length);
+  };
+
+  const showNextImage = () => {
+    setSelectedImage((current) => (current + 1) % images.length);
+  };
 
   useEffect(() => {
     setShareUrl(window.location.href);
@@ -135,16 +151,27 @@ export function AdDetail({ ad }: AdDetailProps) {
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.18fr)_minmax(360px,0.82fr)] lg:gap-12">
           <section className="min-w-0" aria-label={tr("Fotografias do produto", "Product photos")}>
-            <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-[#d8e7dc] bg-white shadow-[0_16px_40px_rgba(14,42,35,0.07)] sm:aspect-square lg:aspect-[4/3]">
+            <div className="relative aspect-square overflow-hidden rounded-lg border border-[#d8e7dc] bg-[#e8f0ed] shadow-[0_16px_40px_rgba(14,42,35,0.07)] lg:aspect-[4/3]">
               {currentImage ? (
-                <Image
-                  src={currentImage}
-                  alt={ad.product_name}
-                  fill
-                  priority
-                  className="object-contain"
-                  sizes="(max-width: 1024px) 100vw, 58vw"
-                />
+                <>
+                  <Image
+                    src={currentImage}
+                    alt=""
+                    fill
+                    aria-hidden="true"
+                    className="scale-110 object-cover opacity-30 blur-2xl"
+                    sizes="(max-width: 1024px) 100vw, 58vw"
+                  />
+                  <span className="absolute inset-0 bg-white/50" aria-hidden="true" />
+                  <Image
+                    src={currentImage}
+                    alt={`${ad.product_name}, ${tr("fotografia", "photo")} ${selectedImage + 1}`}
+                    fill
+                    priority
+                    className="z-[1] object-contain p-2 sm:p-4"
+                    sizes="(max-width: 1024px) 100vw, 58vw"
+                  />
+                </>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center px-6 text-center text-[#6d8179]">
                   <p className="font-serif text-2xl font-semibold text-[#0b2f27]">{tr("Sem fotografia", "No photo")}</p>
@@ -152,13 +179,36 @@ export function AdDetail({ ad }: AdDetailProps) {
                 </div>
               )}
 
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={showPreviousImage}
+                    className="absolute left-3 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/90 text-[#082f4f] shadow-[0_8px_24px_rgba(7,52,79,0.18)] backdrop-blur transition hover:bg-white sm:left-4 sm:h-11 sm:w-11"
+                    aria-label={tr("Fotografia anterior", "Previous photo")}
+                    title={tr("Fotografia anterior", "Previous photo")}
+                  >
+                    <GalleryArrowIcon direction="previous" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showNextImage}
+                    className="absolute right-3 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-white/80 bg-white/90 text-[#082f4f] shadow-[0_8px_24px_rgba(7,52,79,0.18)] backdrop-blur transition hover:bg-white sm:right-4 sm:h-11 sm:w-11"
+                    aria-label={tr("Fotografia seguinte", "Next photo")}
+                    title={tr("Fotografia seguinte", "Next photo")}
+                  >
+                    <GalleryArrowIcon direction="next" />
+                  </button>
+                </>
+              )}
+
               {isFeatured && (
-                <span className="absolute left-4 top-4 rounded-md bg-[#fff3bf] px-3 py-1.5 text-xs font-black text-[#725500] shadow-sm">
+                <span className="absolute left-3 top-3 z-10 rounded-md bg-[#fff3bf] px-3 py-1.5 text-xs font-black text-[#725500] shadow-sm sm:left-4 sm:top-4">
                   {tr("Produto em destaque", "Featured product")}
                 </span>
               )}
               {images.length > 0 && (
-                <span className="absolute bottom-4 right-4 rounded-md bg-[#071f1b]/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+                <span className="absolute bottom-3 right-3 z-10 rounded-md bg-[#071f1b]/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur sm:bottom-4 sm:right-4">
                   {selectedImage + 1} {tr("de", "of")} {images.length}
                 </span>
               )}
@@ -173,13 +223,13 @@ export function AdDetail({ ad }: AdDetailProps) {
                     onClick={() => setSelectedImage(index)}
                     aria-label={`${tr("Ver fotografia", "View photo")} ${index + 1}`}
                     aria-pressed={selectedImage === index}
-                    className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-md border-2 bg-white transition ${
+                    className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-md border-2 bg-[#edf3f1] transition sm:h-24 sm:w-24 ${
                       selectedImage === index
-                        ? "border-[#e7492f]"
+                        ? "border-[#08a6a6] shadow-[0_6px_18px_rgba(8,166,166,0.18)]"
                         : "border-[#d8e7dc] hover:border-[#0b8a5f]"
                     }`}
                   >
-                    <Image src={image.image_url} alt="" fill className="object-cover" sizes="80px" />
+                    <Image src={image.image_url} alt="" fill className="object-contain p-1" sizes="96px" />
                   </button>
                 ))}
               </div>

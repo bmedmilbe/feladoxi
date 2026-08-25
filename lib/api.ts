@@ -2,6 +2,10 @@ import axios from "axios";
 import type {
   Ad,
   AdImage,
+  AdminDashboard,
+  AdminUser,
+  AdvertisingRequest,
+  AdvertisingRequestStatus,
   ApiResponse,
   Category,
   FilterState,
@@ -9,6 +13,7 @@ import type {
   TemporaryAdImage,
 } from "@/types";
 import demoDraftManifest from "@/data/test-product-drafts.json";
+import { formatProductName } from "@/lib/text";
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL?.trim() || "/api/proxy").replace(/\/$/, "");
 const REMOTE_API_ORIGIN = API_BASE_URL.startsWith("http")
@@ -98,6 +103,8 @@ function normalizeTextFields<T>(value: T): T {
         key,
         key === "image_url" && typeof item === "string"
           ? normalizeMediaUrl(item)
+          : key === "product_name" && typeof item === "string"
+            ? formatProductName(repairMojibake(item))
           : normalizeTextFields(item),
       ]),
     ) as T;
@@ -271,6 +278,7 @@ function clearAuthStorage(): void {
   window.localStorage.removeItem("user_id");
   window.localStorage.removeItem("mobile_number");
   window.localStorage.removeItem("district");
+  window.localStorage.removeItem("is_staff");
   window.localStorage.removeItem("refresh_token");
 }
 
@@ -628,6 +636,8 @@ export async function fetchCurrentUser(): Promise<{
   mobile_number: string;
   username: string;
   district?: string;
+  is_staff: boolean;
+  is_active: boolean;
 }> {
   const response = await api.get(buildApiUrl("/auth/users/me/"));
   return normalizeTextFields(response.data);
@@ -678,7 +688,141 @@ export function logout(): void {
   localStorage.removeItem("user_id");
   localStorage.removeItem("mobile_number");
   localStorage.removeItem("district");
+  localStorage.removeItem("is_staff");
   localStorage.removeItem("refresh_token");
+}
+
+function buildAdminListUrl(path: string, page: number, search: string): string {
+  const params = new URLSearchParams({ page: String(page) });
+  if (search.trim()) params.set("search", search.trim());
+  return buildApiUrl(`${path}?${params.toString()}`);
+}
+
+export async function fetchAdminDashboard(): Promise<AdminDashboard> {
+  const response = await api.get<AdminDashboard>(
+    buildApiUrl("/marketplace/admin/dashboard/"),
+  );
+  return normalizeTextFields(response.data);
+}
+
+export async function fetchAdminAds(
+  page = 1,
+  search = "",
+): Promise<ApiResponse<Ad>> {
+  const response = await api.get(
+    buildAdminListUrl("/marketplace/admin/ads/", page, search),
+  );
+  return normalizeAdResponse(response.data);
+}
+
+export async function updateAdminAd(
+  id: Ad["id"],
+  payload: Partial<Pick<Ad, "status" | "is_featured" | "featured_until">>,
+): Promise<Ad> {
+  const response = await api.patch<Ad>(
+    buildApiUrl(`/marketplace/admin/ads/${id}/`),
+    payload,
+  );
+  return normalizeAd(response.data);
+}
+
+export async function deleteAdminAd(id: Ad["id"]): Promise<void> {
+  await api.delete(buildApiUrl(`/marketplace/admin/ads/${id}/`));
+}
+
+export async function fetchAdminCategories(
+  page = 1,
+  search = "",
+): Promise<ApiResponse<Category>> {
+  const response = await api.get(
+    buildAdminListUrl("/marketplace/admin/categories/", page, search),
+  );
+  return normalizeApiResponse<Category>(response.data);
+}
+
+type AdminCategoryPayload = Pick<Category, "name" | "slug" | "description"> &
+  Partial<Pick<Category, "icon" | "parent">>;
+
+export async function createAdminCategory(
+  payload: AdminCategoryPayload,
+): Promise<Category> {
+  const response = await api.post<Category>(
+    buildApiUrl("/marketplace/admin/categories/"),
+    payload,
+  );
+  return normalizeTextFields(response.data);
+}
+
+export async function updateAdminCategory(
+  id: Category["id"],
+  payload: Partial<AdminCategoryPayload>,
+): Promise<Category> {
+  const response = await api.patch<Category>(
+    buildApiUrl(`/marketplace/admin/categories/${id}/`),
+    payload,
+  );
+  return normalizeTextFields(response.data);
+}
+
+export async function deleteAdminCategory(id: Category["id"]): Promise<void> {
+  await api.delete(buildApiUrl(`/marketplace/admin/categories/${id}/`));
+}
+
+export async function fetchAdminAdvertisingRequests(
+  page = 1,
+  search = "",
+): Promise<ApiResponse<AdvertisingRequest>> {
+  const response = await api.get(
+    buildAdminListUrl(
+      "/marketplace/admin/advertising-requests/",
+      page,
+      search,
+    ),
+  );
+  return normalizeApiResponse<AdvertisingRequest>(response.data);
+}
+
+export async function updateAdminAdvertisingRequest(
+  id: AdvertisingRequest["id"],
+  payload: Partial<{
+    status: AdvertisingRequestStatus;
+    admin_notes: string;
+  }>,
+): Promise<AdvertisingRequest> {
+  const response = await api.patch<AdvertisingRequest>(
+    buildApiUrl(`/marketplace/admin/advertising-requests/${id}/`),
+    payload,
+  );
+  return normalizeTextFields(response.data);
+}
+
+export async function deleteAdminAdvertisingRequest(
+  id: AdvertisingRequest["id"],
+): Promise<void> {
+  await api.delete(
+    buildApiUrl(`/marketplace/admin/advertising-requests/${id}/`),
+  );
+}
+
+export async function fetchAdminUsers(
+  page = 1,
+  search = "",
+): Promise<ApiResponse<AdminUser>> {
+  const response = await api.get(
+    buildAdminListUrl("/marketplace/admin/users/", page, search),
+  );
+  return normalizeApiResponse<AdminUser>(response.data);
+}
+
+export async function updateAdminUser(
+  id: AdminUser["id"],
+  payload: Partial<Pick<AdminUser, "district" | "is_active">>,
+): Promise<AdminUser> {
+  const response = await api.patch<AdminUser>(
+    buildApiUrl(`/marketplace/admin/users/${id}/`),
+    payload,
+  );
+  return normalizeTextFields(response.data);
 }
 
 export function getApiErrorMessage(error: unknown): string | null {

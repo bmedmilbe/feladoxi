@@ -1,69 +1,82 @@
-
-> feladoxi@0.1.0 dev
-> next dev --hostname 0.0.0.0 --port 3000
-
    ▲ Next.js 14.0.4
-   - Local:        http://localhost:3000
-   - Network:      http://0.0.0.0:3000
+   - Local:        http://127.0.0.1:3000
+   - Network:      http://127.0.0.1:3000
    - Environments: .env.local
 
- ✓ Ready in 5.2s
+ ✓ Ready in 7.4s
+ ○ Compiling /api/proxy ...
+ ✓ Compiled /api/proxy in 20.7s (2561 modules)
+ ✓ Compiled in 2.5s (1220 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 1144ms (2559 modules)
+ ○ Compiling /help ...
+ ✓ Compiled /help in 717ms (2566 modules)
+ ○ Compiling /about ...
+ ✓ Compiled /about in 643ms (2568 modules)
+ ○ Compiling /advertise ...
+ ✓ Compiled /advertise in 1764ms (2575 modules)
  ○ Compiling /auth/login ...
- ✓ Compiled /auth/login in 13.7s (816 modules)
- ✓ Compiled in 850ms (357 modules)
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 2.3s (487 modules)
- ○ Compiling / ...
- ✓ Compiled / in 14.5s (2565 modules)
- ✓ Compiled in 5.8s (2551 modules)
- ✓ Compiled in 674ms (1224 modules)
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 4.1s (1355 modules)
- ○ Compiling /my-ads ...
- ✓ Compiled /my-ads in 3.8s (2559 modules)
+ ✓ Compiled /auth/login in 1209ms (2585 modules)
+ ○ Compiling /auth/register ...
+ ✓ Compiled /auth/register in 819ms (2591 modules)
  ○ Compiling /ads/create ...
- ✓ Compiled /ads/create in 9.5s (2581 modules)
- ✓ Compiled in 9.3s (2576 modules)
- ○ Compiling /ads/[id] ...
- ✓ Compiled /ads/[id] in 4.1s (2572 modules)
- ✓ Compiled in 4.3s (2586 modules)
- ✓ Compiled in 2.2s (2586 modules)
- ✓ Compiled in 1947ms (2586 modules)
- ○ Compiling /favorites ...
- ✓ Compiled /favorites in 2.1s (2578 modules)
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 22.4s (1370 modules)
- ✓ Compiled in 10.4s (2578 modules)
- ✓ Compiled in 3.9s (2578 modules)
- ✓ Compiled in 2.4s (2578 modules)
- ✓ Compiled in 2.1s (2578 modules)
-   ▲ Next.js 14.0.4
-   - Local:        http://localhost:3000
-   - Network:      http://0.0.0.0:3000
-   - Environments: .env.local
-
- ✓ Ready in 37.6s
- ○ Compiling / ...
- ✓ Compiled / in 63.3s (2541 modules)
- ✓ Compiled in 2.4s (1220 modules)
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 6.5s (1349 modules)
- ○ Compiling /ads/[id] ...
- ✓ Compiled /ads/[id] in 3s (2553 modules)
- ✓ Compiled in 755ms (1225 modules)
- ✓ Compiled in 13.8s (2553 modules)
- ✓ Compiled in 2.3s (2539 modules)
- ✓ Compiled in 3s (2539 modules)
- ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 1874ms (1356 modules)
- ○ Compiling /favorites ...
- ✓ Compiled /favorites in 1718ms (2587 modules)
+ ✓ Compiled /ads/create in 1100ms (2627 modules)
  ○ Compiling /my-ads ...
- ✓ Compiled /my-ads in 755ms (2579 modules)
- ○ Compiling /my-ads/[id] ...
- ✓ Compiled /my-ads/[id] in 1446ms (2615 modules)
- ✓ Compiled in 6.3s (2601 modules)
- ✓ Compiled in 3.4s (2601 modules)
- ✓ Compiled in 2.7s (2601 modules)
+ ✓ Compiled /my-ads in 1563ms (2633 modules)
+ ○ Compiling /favorites ...
+ ✓ Compiled /favorites in 631ms (2639 modules)
+ ○ Compiling /cart ...
+ ✓ Compiled /cart in 796ms (2645 modules)
  ○ Compiling /favicon.ico ...
- ✓ Compiled /favicon.ico in 855ms (1383 modules)
+ ✓ Compiled /favicon.ico in 2.6s (1428 modules)
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 1036ms (2659 modules)
+ ✓ Compiled in 1785ms (2570 modules)
+ ✓ Compiled in 1103ms (2566 modules)
+ ✓ Compiled /help in 258ms (1327 modules)
+ ✓ Compiled /about in 249ms (1329 modules)
+ ✓ Compiled /advertise in 255ms (1334 modules)
+ ✓ Compiled /auth/login in 272ms (1340 modules)
+ ✓ Compiled /auth/register in 355ms (1344 modules)
+ ✓ Compiled /ads/create in 309ms (1363 modules)
+ ✓ Compiled /my-ads in 477ms (1368 modules)
+ ✓ Compiled /favorites in 326ms (1372 modules)
+ ✓ Compiled /admin in 519ms (1376 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 1313ms (1382 modules)
+ ✓ Compiled /api/proxy in 383ms (1402 modules)
+ ✓ Compiled in 5s (2591 modules)
+ ✓ Compiled in 1348ms (2591 modules)
+ ✓ Compiled in 2.5s (2591 modules)
+ ✓ Compiled in 1076ms (2591 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1258ms (1360 modules)
+ ✓ Compiled in 3.5s (2591 modules)
+ ✓ Compiled in 1537ms (2591 modules)
+ ✓ Compiled in 3.1s (2579 modules)
+ ✓ Compiled in 2.2s (2579 modules)
+ ✓ Compiled in 1978ms (1260 modules)
+ ✓ Compiled in 1104ms (1260 modules)
+ ✓ Compiled in 3.4s (2593 modules)
+ ✓ Compiled in 1854ms (1260 modules)
+ ○ Compiling /my-ads ...
+ ✓ Compiled /my-ads in 1611ms (1337 modules)
+ ○ Compiling /my-ads/[id] ...
+ ✓ Compiled /my-ads/[id] in 1618ms (2618 modules)
+ ✓ Compiled in 667ms (1262 modules)
+ ✓ Compiled in 4.8s (2618 modules)
+ ✓ Compiled in 1494ms (2618 modules)
+ ✓ Compiled /api/proxy in 489ms (1376 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1168ms (1402 modules)
+ ✓ Compiled in 4.8s (2618 modules)
+ ✓ Compiled in 2.1s (2618 modules)
+ ✓ Compiled in 1102ms (2618 modules)
+ ✓ Compiled /api/proxy in 455ms (1376 modules)
+ ✓ Compiled in 2.3s (2618 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1310ms (1384 modules)
+ ✓ Compiled in 1846ms (2646 modules)
+ ✓ Compiled in 1848ms (2646 modules)
+ ✓ Compiled in 1308ms (2646 modules)
+ ✓ Compiled /api/proxy in 501ms (1402 modules)

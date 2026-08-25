@@ -19,9 +19,15 @@ import {
 } from "@/lib/api";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
+import { formatProductName } from "@/lib/text";
 
 interface AuthContextType {
-  user: { id: number; mobile_number: string; district: string } | null;
+  user: {
+    id: number;
+    mobile_number: string;
+    district: string;
+    is_staff: boolean;
+  } | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (
@@ -47,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     id: number;
     mobile_number: string;
     district: string;
+    is_staff: boolean;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingAdData, setPendingAdData] = useState<{
@@ -63,13 +70,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userId = localStorage.getItem("user_id");
     const mobileNumber = localStorage.getItem("mobile_number");
     const district = localStorage.getItem("district");
+    const isStaff = localStorage.getItem("is_staff") === "true";
 
     if (token && userId && mobileNumber) {
       setUser({
         id: parseInt(userId),
         mobile_number: mobileNumber,
         district: district!,
+        is_staff: isStaff,
       });
+
+      void fetchCurrentUser()
+        .then((currentUser) => {
+          const currentDistrict = currentUser.district || district || "";
+          const currentIsStaff = Boolean(currentUser.is_staff);
+          localStorage.setItem("user_id", String(currentUser.id));
+          localStorage.setItem("mobile_number", currentUser.mobile_number);
+          localStorage.setItem("district", currentDistrict);
+          localStorage.setItem("is_staff", String(currentIsStaff));
+          setUser({
+            id: currentUser.id,
+            mobile_number: currentUser.mobile_number,
+            district: currentDistrict,
+            is_staff: currentIsStaff,
+          });
+        })
+        .catch(() => undefined);
     }
 
     // Check for pending ad
@@ -80,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = JSON.parse(pendingData);
         setPendingAdData({
           token: pendingToken,
-          product_name: data.product_name || "produto",
+          product_name: formatProductName(data.product_name || "produto"),
           created_at: data.created_at || new Date().toISOString(),
         });
       } catch (error) {
@@ -105,15 +131,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("refresh_token", response.refresh);
       const currentUser = await fetchCurrentUser();
       const district = currentUser.district || localStorage.getItem("district") || "";
+      const isStaff = Boolean(currentUser.is_staff);
       localStorage.setItem("user_id", String(currentUser.id));
       localStorage.setItem("mobile_number", currentUser.mobile_number);
       if (district) localStorage.setItem("district", district);
+      localStorage.setItem("is_staff", String(isStaff));
       localStorage.removeItem("last_registered_mobile_number");
 
       setUser({
         id: currentUser.id,
         mobile_number: currentUser.mobile_number,
         district,
+        is_staff: isStaff,
       });
 
       // Handle pending ad transfer

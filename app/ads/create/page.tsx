@@ -13,6 +13,7 @@ import {
   getApiErrorMessage,
   uploadTemporaryAdImage,
 } from "@/lib/api";
+import { formatProductName } from "@/lib/text";
 import {
   type AdCondition,
   type ApiResponse,
@@ -234,7 +235,8 @@ export default function CreateAdPage() {
 
     try {
       const submitData = new FormData();
-      submitData.append("product_name", formData.product_name.trim());
+      const productName = formatProductName(formData.product_name);
+      submitData.append("product_name", productName);
       submitData.append("description", formData.description.trim());
       submitData.append("category", formData.category);
       submitData.append("condition", formData.condition);
@@ -263,7 +265,7 @@ export default function CreateAdPage() {
       localStorage.setItem(
         "pending_ad_data",
         JSON.stringify({
-          product_name: formData.product_name.trim(),
+          product_name: productName,
           image_count: formData.images.length,
           created_at: response.created_at || new Date().toISOString(),
         }),

@@ -11,6 +11,8 @@ import type { ApiResponse, Category } from "@/types";
 import { useLanguage, type Language } from "@/context/LanguageContext";
 import {
   SearchAutocomplete,
+  conditionFromSearch,
+  districtFromSearch,
   type SearchSuggestion,
 } from "@/components/SearchAutocomplete";
 
@@ -162,13 +164,13 @@ function ChevronIcon({ open = false }: { open?: boolean }) {
 
 function BrandMark() {
   return (
-    <span className="flex shrink-0 items-center gap-2.5">
-      <svg className="h-12 w-14" viewBox="0 0 58 50" fill="none" aria-hidden="true">
+    <span className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+      <svg className="h-10 w-12 sm:h-12 sm:w-14" viewBox="0 0 58 50" fill="none" aria-hidden="true">
         <circle cx="29" cy="9" r="7" fill="#ffd23f" />
         <path d="M8 31V14l21 20 21-20v17" stroke="#0aa7a6" strokeWidth="6" strokeLinejoin="miter" />
         <path d="M8 38c7-4 14-4 21 0 7-4 14-4 21 0M11 44c6-3 12-3 18 0 6-3 12-3 18 0" stroke="#0a4a71" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
-      <span className="hidden text-2xl font-black leading-none text-[#06365a] sm:block xl:text-3xl">
+      <span className="whitespace-nowrap text-lg font-black leading-none text-[#06365a] sm:text-2xl xl:text-3xl">
         Mercado STP
       </span>
     </span>
@@ -187,7 +189,7 @@ export default function Navigation() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const isAccountPage = pathname.startsWith("/auth") || pathname.startsWith("/my-ads");
+  const isAccountPage = pathname.startsWith("/auth") || pathname.startsWith("/my-ads") || pathname.startsWith("/admin");
   const isCreatePage = pathname === "/ads/create";
   const isFavoritesPage = pathname === "/favorites";
   const favoritesHref = isAuthenticated ? "/favorites" : "/auth/login";
@@ -251,17 +253,31 @@ export default function Navigation() {
   const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = searchQuery.trim();
+    const condition = conditionFromSearch(query);
+    const district = districtFromSearch(query);
     setActiveCategory("");
-    router.push(query ? `/?search=${encodeURIComponent(query)}#produtos` : "/#produtos");
+    router.push(
+      condition
+        ? `/?condition=${encodeURIComponent(condition)}#produtos`
+        : district
+          ? `/?district=${encodeURIComponent(district)}#produtos`
+          : query
+            ? `/?search=${encodeURIComponent(query)}#produtos`
+            : "/#produtos",
+    );
     setMobileMenuOpen(false);
     setMoreCategoriesOpen(false);
   };
 
   const selectSuggestion = (suggestion: SearchSuggestion) => {
     setSearchQuery(suggestion.label);
-    const target = suggestion.categorySlug
-      ? `/?category=${encodeURIComponent(suggestion.categorySlug)}#produtos`
-      : `/?search=${encodeURIComponent(suggestion.label)}#produtos`;
+    const target = suggestion.condition
+      ? `/?condition=${encodeURIComponent(suggestion.condition)}#produtos`
+      : suggestion.district
+        ? `/?district=${encodeURIComponent(suggestion.district)}#produtos`
+        : suggestion.categorySlug
+          ? `/?category=${encodeURIComponent(suggestion.categorySlug)}#produtos`
+          : `/?search=${encodeURIComponent(suggestion.label)}#produtos`;
     setActiveCategory(suggestion.categorySlug || "");
     router.push(target);
     setMobileMenuOpen(false);
@@ -296,7 +312,7 @@ export default function Navigation() {
             <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 sm:block">
               <label className="sr-only" htmlFor="nav-search">{tr("Pesquisar produtos", "Search products")}</label>
               <div className="relative mx-auto max-w-[760px]">
-                <SearchAutocomplete id="nav-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Pesquisar produtos, marcas e categorias...", "Search products, brands and categories...")} inputClassName="h-14 w-full rounded-full border border-[#174f70] bg-white pl-14 pr-20 text-sm text-[#082f4f] outline-none transition placeholder:text-[#758796] focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-6" />
+                <SearchAutocomplete id="nav-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Produtos, categorias, condição ou distrito...", "Products, categories, condition or district...")} inputClassName="h-14 w-full rounded-full border border-[#174f70] bg-white pl-14 pr-20 text-sm text-[#082f4f] outline-none transition placeholder:text-[#758796] focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-6" />
                 <button type="submit" className="absolute right-1.5 top-1.5 z-20 grid h-11 w-14 place-items-center rounded-full bg-[#09a5a6] text-white transition hover:bg-[#078b8d]" aria-label="Pesquisar"><SearchIcon /></button>
               </div>
             </form>
@@ -327,6 +343,12 @@ export default function Navigation() {
                           <ProductIcon />
                           <span>{tr("Meus anúncios", "My listings")}</span>
                         </Link>
+                        {user?.is_staff && (
+                          <Link href="/admin" className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-[#183e58] transition hover:bg-[#eefafa] hover:text-[#087f82]">
+                            <GridIcon />
+                            <span>{tr("Administração", "Administration")}</span>
+                          </Link>
+                        )}
                         <Link href="/favorites" className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-[#183e58] transition hover:bg-[#eefafa] hover:text-[#087f82]">
                           <HeartIcon />
                           <span>{tr("Favoritos", "Favourites")}</span>
@@ -361,7 +383,7 @@ export default function Navigation() {
           <form onSubmit={submitSearch} className="pb-3 sm:hidden">
             <label className="sr-only" htmlFor="mobile-search">{tr("Pesquisar produtos", "Search products")}</label>
             <div className="relative">
-              <SearchAutocomplete id="mobile-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Pesquisar produtos e categorias...", "Search products and categories...")} inputClassName="h-12 w-full rounded-full border border-[#174f70] bg-white pl-12 pr-16 text-sm outline-none focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-4" />
+              <SearchAutocomplete id="mobile-search" value={searchQuery} onChange={setSearchQuery} onSuggestionSelect={selectSuggestion} placeholder={tr("Produto, condição ou distrito...", "Product, condition or district...")} inputClassName="h-12 w-full rounded-full border border-[#174f70] bg-white pl-12 pr-16 text-sm outline-none focus:border-[#08a6a6] focus:ring-4 focus:ring-[#08a6a6]/10" iconClassName="left-4" />
               <button type="submit" className="absolute right-1 top-1 z-20 grid h-10 w-12 place-items-center rounded-full bg-[#09a5a6] text-white" aria-label="Pesquisar"><SearchIcon className="h-5 w-5" /></button>
             </div>
           </form>
@@ -438,6 +460,12 @@ export default function Navigation() {
                 <ProductIcon />
                 <span>{tr("Meus anúncios", "My listings")}</span>
               </Link>
+              {user?.is_staff && (
+                <Link href="/admin" onClick={() => setAccountMenuOpen(false)} className="flex min-h-12 items-center gap-2 rounded-md bg-[#f5fafb] px-3 text-sm font-bold text-[#183e58]">
+                  <GridIcon />
+                  <span>{tr("Administração", "Administration")}</span>
+                </Link>
+              )}
               <Link href="/favorites" onClick={() => setAccountMenuOpen(false)} className="relative flex min-h-12 items-center gap-2 rounded-md bg-[#f5fafb] px-3 text-sm font-bold text-[#183e58]">
                 <HeartIcon />
                 <span>{tr("Favoritos", "Favourites")}</span>

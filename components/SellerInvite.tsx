@@ -75,6 +75,11 @@ export function SellerInvite() {
             {tr("Crie o anúncio, mostre o produto e fale diretamente com compradores interessados em São Tomé e Príncipe.", "Create a listing, show your product and speak directly with interested buyers in São Tomé and Príncipe.")}
           </p>
 
+          <p className="mt-5 inline-flex items-center gap-2 rounded-md border border-[#f1cf4b] bg-[#fff7d6] px-3 py-2 text-sm font-black text-[#725800]">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-[#ffd23f] text-xs" aria-hidden="true">✓</span>
+            {tr("Anunciar produtos é grátis", "Listing products is free")}
+          </p>
+
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link href="/ads/create" className="inline-flex h-12 items-center justify-center gap-3 rounded-md bg-[#ffd23f] px-6 text-sm font-black text-[#082f4f] shadow-[0_10px_22px_rgba(7,52,79,0.10)] transition hover:bg-[#ffe071]">
               {tr("Anunciar produto", "List a product")}

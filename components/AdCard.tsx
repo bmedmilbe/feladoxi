@@ -59,6 +59,14 @@ function HeartIcon({ filled }: { filled: boolean }) {
   );
 }
 
+function StarIcon() {
+  return (
+    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.5 1.1 6.3-5.6-3-5.6 3 1.1-6.3-4.6-4.5 6.3-.9L12 2.8Z" />
+    </svg>
+  );
+}
+
 function PinIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -96,9 +104,9 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
   const categoryFallback = ad.category?.slug
     ? categoryFallbackImages[ad.category.slug]
     : null;
+  const imageCount = ad.images?.length || 0;
   const primaryImage =
     ad.images?.[0]?.image_url || categoryFallback;
-  const hasProductImage = Boolean(ad.images?.[0]?.image_url);
   const districtCode = ad.customer.district;
   const originalDistrictLabel = DistrictLabels[districtCode as keyof typeof DistrictLabels] || districtCode;
   const districtLabel = districtCode === "UNKNOWN"
@@ -121,12 +129,14 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
 
   return (
     <article
-      className={`group relative h-full overflow-hidden rounded-lg border bg-white shadow-[0_14px_32px_rgba(7,52,79,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(7,52,79,0.14)] ${
-        isFeatured ? "border-[#08a6a6]" : "border-[#dceaf0]"
+      className={`group relative h-full overflow-hidden rounded-lg border bg-white transition duration-300 hover:-translate-y-1 ${
+        isFeatured
+          ? "border-[#e2ba22] shadow-[0_16px_38px_rgba(174,128,0,0.18)] ring-1 ring-[#ffd23f]/70 hover:shadow-[0_24px_52px_rgba(174,128,0,0.24)]"
+          : "border-[#dceaf0] shadow-[0_14px_32px_rgba(7,52,79,0.08)] hover:shadow-[0_22px_50px_rgba(7,52,79,0.14)]"
       }`}
     >
       <Link href={`/ads/${ad.id}`} className="block h-full">
-        <div className="relative aspect-[4/3] overflow-hidden bg-[#dbe9df]">
+        <div className="relative aspect-square overflow-hidden bg-[#e8f0ed] sm:aspect-[4/3]">
           <div className="absolute inset-0 grid place-content-center gap-3 bg-[#dcece3] text-center text-[#42665b]">
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full border border-[#bad7df] bg-white/70 text-3xl font-black text-[#082f4f]">
               {ad.category?.name?.charAt(0) || "M"}
@@ -142,32 +152,42 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
               alt={ad.product_name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className={`transition duration-500 group-hover:scale-105 ${
-                hasProductImage ? "bg-white object-contain" : "object-cover"
-              }`}
+              className="z-[1] object-cover transition duration-500 group-hover:scale-105"
               onError={(event) => {
                 event.currentTarget.style.display = "none";
               }}
             />
           )}
-          {primaryImage && (
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b2f27]/44 via-transparent to-transparent opacity-80" />
-          )}
 
           {conditionLabel && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-[#173a32] shadow-sm sm:bottom-3 sm:left-3 sm:px-3 sm:text-xs">
+            <span className="absolute bottom-2 left-2 z-[2] rounded-full bg-white/95 px-2 py-1 text-[10px] font-bold text-[#173a32] shadow-sm backdrop-blur sm:bottom-3 sm:left-3 sm:px-3 sm:text-xs">
               {conditionLabel}
             </span>
           )}
-          {isOnSale && (
-            <span className="absolute left-2 top-2 rounded-md bg-[#e7492f] px-2 py-1 text-[10px] font-black text-white shadow-sm sm:left-3 sm:top-3 sm:px-3 sm:text-xs">
-              -{ad.discount_percentage}%
+          {imageCount > 1 && (
+            <span className="absolute bottom-2 right-2 z-[2] rounded-md bg-[#082f4f]/88 px-2 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur sm:bottom-3 sm:right-3 sm:text-xs">
+              {imageCount} {tr("fotos", "photos")}
             </span>
           )}
-          {ad.is_demo && (
-            <span className={`absolute left-2 rounded-md bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-sm sm:left-3 sm:px-3 sm:text-xs ${isOnSale ? "top-10 sm:top-12" : "top-2 sm:top-3"}`}>
-              {tr("Demonstração", "Demo")}
-            </span>
+          {(isFeatured || isOnSale || ad.is_demo) && (
+            <div className="absolute left-2 top-2 z-[2] flex flex-col items-start gap-1.5 sm:left-3 sm:top-3">
+              {isFeatured && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-[#ffd23f] px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-[0_5px_14px_rgba(93,70,0,0.22)] sm:px-3 sm:text-xs">
+                  <StarIcon />
+                  {tr("Em destaque", "Featured")}
+                </span>
+              )}
+              {isOnSale && (
+                <span className="rounded-md bg-[#e7492f] px-2 py-1 text-[10px] font-black text-white shadow-sm sm:px-3 sm:text-xs">
+                  -{ad.discount_percentage}%
+                </span>
+              )}
+              {ad.is_demo && (
+                <span className="rounded-md bg-white/95 px-2 py-1 text-[10px] font-black uppercase text-[#082f4f] shadow-sm backdrop-blur sm:px-3 sm:text-xs">
+                  {tr("Demonstração", "Demo")}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
@@ -176,11 +196,6 @@ export function AdCard({ ad, featured = false }: AdCardProps) {
             <span className="min-w-0 truncate rounded-full bg-[#e4f7f7] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#078b8d] sm:px-3 sm:text-xs sm:tracking-[0.12em]">
               {ad.category ? categoryName(ad.category.slug, ad.category.name) : tr("Sem categoria", "Uncategorised")}
             </span>
-            {isFeatured && (
-              <span className="hidden rounded-full bg-[#ffd23f] px-3 py-1 text-xs font-bold text-[#082f4f] sm:inline-flex">
-                {tr("Destaque", "Featured")}
-              </span>
-            )}
           </div>
 
           <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-bold leading-5 text-[#082f4f] sm:min-h-[3.25rem] sm:text-lg sm:leading-snug">

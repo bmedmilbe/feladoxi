@@ -9,7 +9,7 @@ const footerLinks = [
     titleEn: "Buy",
     links: [
       { label: "Produtos locais", labelEn: "Local products", href: "/?category=produtos-agricolas" },
-      { label: "Eletrónica", labelEn: "Electronics", href: "/?category=electronica" },
+      { label: "Telemóveis", labelEn: "Mobile phones", href: "/?category=telemoveis" },
       { label: "Casa", labelEn: "Home", href: "/?category=moveis" },
       { label: "Veículos", labelEn: "Vehicles", href: "/?category=carros" },
     ],
