@@ -8,7 +8,7 @@ import { AuthShell } from "@/components/AuthShell";
 import { PhoneField } from "@/components/PhoneField";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { DistrictLabels } from "@/types";
+import { DistrictLabels, type District } from "@/types";
 
 function CheckIcon() {
   return (
@@ -34,7 +34,11 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasPendingAd, setHasPendingAd] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    country_code: string;
+    mobile_number: string;
+    district: District | "";
+  }>({
     country_code: "+239",
     mobile_number: "",
     district: "",
@@ -143,12 +147,15 @@ export default function RegisterPage() {
                 required
                 value={formData.district}
                 onChange={(event) =>
-                  setFormData((current) => ({ ...current, district: event.target.value }))
+                  setFormData((current) => ({
+                    ...current,
+                    district: event.target.value as District | "",
+                  }))
                 }
                 className="market-field mt-2"
               >
                 <option value="">{tr("Selecione o seu distrito", "Select your district")}</option>
-                {Object.entries(DistrictLabels).map(([key, label]) => (
+                {Object.entries(DistrictLabels).filter(([key]) => key !== "UNKNOWN").map(([key, label]) => (
                   <option key={key} value={key}>
                     {language === "en" && key === "DIASPORA" ? "Diaspora" : label}
                   </option>

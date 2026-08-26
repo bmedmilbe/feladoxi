@@ -39,7 +39,7 @@ const textAreaClass =
 const statusLabels = {
   ACTIVE: "Ativo",
   SUSPENDED: "Suspenso",
-  EXPIRED: "Expirado",
+  EXPIRED: "Inativo",
 };
 
 function dateInputValue(value?: string | null) {
@@ -518,11 +518,8 @@ export default function EditAdPage() {
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#e7492f]">{tr("Estado atual", "Current status")}</p>
             <div className="mt-4 flex items-center justify-between gap-3">
               <span className="text-sm font-bold text-[#0b2f27]">{tr("Publicação", "Publication")}</span>
-              <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">{language === "en" ? ({ ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Expired" } as Record<string, string>)[ad.status] : statusLabels[ad.status]}</span>
+              <span className="rounded-full bg-[#e7f5ee] px-3 py-1 text-xs font-bold text-[#0b3b2f]">{language === "en" ? ({ ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Inactive" } as Record<string, string>)[ad.status] : statusLabels[ad.status]}</span>
             </div>
-            <p className="mt-4 text-sm leading-6 text-[#52685f]">
-              {tr("Expira em", "Expires on")} {new Date(ad.expires_at).toLocaleDateString(language === "en" ? "en-GB" : "pt-PT")}.
-            </p>
           </div>
 
           <div className="rounded-lg bg-[#0b2f27] p-5 text-white shadow-[0_18px_45px_rgba(14,42,35,0.16)]">

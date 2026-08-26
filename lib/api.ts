@@ -25,36 +25,39 @@ const demoContactNumber = "+2399940219";
 
 const districtIdToCode: Record<string, District> = {
   "1": "AGUA_GRANDE",
-  "2": "CANTAGALO",
-  "3": "CAUE",
-  "4": "LEMBA",
+  "2": "MEZOCHI",
+  "3": "LEMBA",
+  "4": "CAUE",
   "5": "LOBATA",
-  "6": "ME_ZOCHI",
-  "7": "PAGUE",
+  "6": "CANTAGALO",
+  "7": "RAP",
   "8": "DIASPORA",
 };
 
 const districtCodes = new Set<District>([
   "AGUA_GRANDE",
-  "CANTAGALO",
-  "CAUE",
+  "MEZOCHI",
   "LEMBA",
+  "CAUE",
   "LOBATA",
-  "ME_ZOCHI",
-  "PAGUE",
+  "CANTAGALO",
+  "RAP",
   "DIASPORA",
   "UNKNOWN",
 ]);
 
 const districtNameToCode: Record<string, District> = {
   AGUA_GRANDE: "AGUA_GRANDE",
-  CANTAGALO: "CANTAGALO",
-  CAUE: "CAUE",
+  MEZOCHI: "MEZOCHI",
+  ME_ZOCHI: "MEZOCHI",
   LEMBA: "LEMBA",
+  CAUE: "CAUE",
   LOBATA: "LOBATA",
-  ME_ZOCHI: "ME_ZOCHI",
-  PAGUE: "PAGUE",
-  PRINCIPE: "PAGUE",
+  CANTAGALO: "CANTAGALO",
+  RAP: "RAP",
+  PAGUE: "RAP",
+  PRINCIPE: "RAP",
+  REGIAO_AUTONOMA_DE_PRINCIPE: "RAP",
   DIASPORA: "DIASPORA",
 };
 
@@ -435,8 +438,6 @@ function buildDemoAd(
     });
   }
 
-  const expiresAt = new Date(draft.created_at);
-  expiresAt.setDate(expiresAt.getDate() + 90);
   const categorySlug = category?.slug || "";
   const condition: Ad["condition"] =
     draft.condition ||
@@ -479,7 +480,6 @@ function buildDemoAd(
             (1 - Number(draft.price) / Number(draft.original_price)) * 100,
           )
         : 0,
-    expires_at: expiresAt.toISOString(),
     created_at: draft.created_at,
     updated_at: draft.updated_at,
     images,
@@ -730,7 +730,7 @@ export async function publishTemporaryAd(tempAdId: string): Promise<Ad> {
 
 export async function register(
   mobile_number: string,
-  district: string,
+  district: District,
 ): Promise<{
   id: number;
   mobile_number: string;

@@ -91,12 +91,12 @@ const conditionSearchTerms: Record<AdCondition, string[]> = {
 
 const districtSearchTerms: Record<Exclude<District, "UNKNOWN">, string[]> = {
   AGUA_GRANDE: ["agua grande"],
-  CANTAGALO: ["cantagalo"],
-  CAUE: ["caue"],
+  MEZOCHI: ["mezochi", "me zochi", "me-zochi"],
   LEMBA: ["lemba"],
+  CAUE: ["caue"],
   LOBATA: ["lobata"],
-  ME_ZOCHI: ["me zochi", "me-zochi"],
-  PAGUE: ["pague", "principe"],
+  CANTAGALO: ["cantagalo"],
+  RAP: ["rap", "principe", "regiao autonoma de principe"],
   DIASPORA: ["diaspora"],
 };
 

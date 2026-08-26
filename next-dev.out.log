@@ -17,3 +17,21 @@
  ✓ Compiled /not-found in 3.5s (2562 modules)
  ✓ Compiled in 1260ms (2529 modules)
  ✓ Compiled in 733ms (2529 modules)
+ ✓ Compiled in 4s (2529 modules)
+ ✓ Compiled in 1661ms (2543 modules)
+ ✓ Compiled in 2.2s (2529 modules)
+ ✓ Compiled in 1160ms (2529 modules)
+ ✓ Compiled in 1025ms (2529 modules)
+ ✓ Compiled in 908ms (1221 modules)
+ ○ Compiling /auth/register ...
+ ✓ Compiled /auth/register in 1574ms (2539 modules)
+ ✓ Compiled in 4.5s (2533 modules)
+ ✓ Compiled in 1489ms (1225 modules)
+ ✓ Compiled in 804ms (1225 modules)
+ ✓ Compiled in 822ms (1225 modules)
+ ✓ Compiled in 609ms (1225 modules)
+ ○ Compiling /ads/[id] ...
+ ✓ Compiled /ads/[id] in 2.1s (2557 modules)
+ ✓ Compiled in 694ms (1229 modules)
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 967ms (1356 modules)

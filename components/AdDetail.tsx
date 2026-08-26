@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { enGB, pt } from "date-fns/locale";
 import { ShareButton } from "@/components/ShareButton";
 import {
@@ -38,15 +38,6 @@ function LocationIcon() {
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" strokeWidth="2" />
       <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M8 3v4m8-4v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -95,8 +86,8 @@ export function AdDetail({ ad }: AdDetailProps) {
   const englishConditions: Record<string, string> = { NEW: "New", USED: "Used", IMPORTED: "Imported", LOCAL: "Made in São Tomé" };
   const conditionLabel = language === "en" && ad.condition ? englishConditions[ad.condition] : originalConditionLabel;
   const statusLabels = language === "en"
-    ? { ACTIVE: "Available", SUSPENDED: "Suspended", EXPIRED: "Expired" }
-    : { ACTIVE: "Disponível", SUSPENDED: "Suspenso", EXPIRED: "Expirado" };
+    ? { ACTIVE: "Available", SUSPENDED: "Suspended", EXPIRED: "Inactive" }
+    : { ACTIVE: "Disponível", SUSPENDED: "Suspenso", EXPIRED: "Inativo" };
   const isAvailable = ad.status === "ACTIVE";
   const isFeatured = ad.is_featured_active;
   const isOnSale = ad.is_on_sale && Boolean(ad.original_price && ad.price);
@@ -285,7 +276,7 @@ export function AdDetail({ ad }: AdDetailProps) {
               <p className="mt-5 text-sm italic text-[#6d8179]">{tr("O vendedor não adicionou uma descrição.", "The seller did not add a description.")}</p>
             )}
 
-            <dl className="mt-6 grid gap-3 border-y border-[#d8e7dc] py-5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+            <dl className="mt-6 grid gap-3 border-y border-[#d8e7dc] py-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div className="flex min-w-0 items-start gap-3">
                 <span className="mt-0.5 shrink-0 text-[#0b6a4c]"><LocationIcon /></span>
                 <div className="min-w-0">
@@ -300,13 +291,6 @@ export function AdDetail({ ad }: AdDetailProps) {
                   <dd className="mt-1 text-sm font-bold text-[#0b2f27]">
                     {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true, locale: language === "en" ? enGB : pt })}
                   </dd>
-                </div>
-              </div>
-              <div className="flex min-w-0 items-start gap-3">
-                <span className="mt-0.5 shrink-0 text-[#0b6a4c]"><CalendarIcon /></span>
-                <div className="min-w-0">
-                  <dt className="text-xs font-black uppercase tracking-[0.12em] text-[#6d8179]">{tr("Validade", "Expiry")}</dt>
-                  <dd className="mt-1 text-sm font-bold text-[#0b2f27]">{format(new Date(ad.expires_at), "dd/MM/yyyy")}</dd>
                 </div>
               </div>
             </dl>

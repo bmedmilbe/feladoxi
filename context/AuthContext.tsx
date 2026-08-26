@@ -20,6 +20,7 @@ import {
 import toast from "react-hot-toast";
 import { useLanguage } from "@/context/LanguageContext";
 import { formatProductName } from "@/lib/text";
+import type { District } from "@/types";
 
 interface AuthContextType {
   user: {
@@ -35,7 +36,7 @@ interface AuthContextType {
     pin: string,
     pending_ad_token?: string,
   ) => Promise<void>;
-  register: (mobile_number: string, district: string) => Promise<void>;
+  register: (mobile_number: string, district: District) => Promise<void>;
   logout: () => void;
   hasPendingAd: boolean;
   pendingAdData: {
@@ -182,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (mobile_number: string, district: string) => {
+  const register = async (mobile_number: string, district: District) => {
     setIsLoading(true);
     try {
       await apiRegister(mobile_number, district);

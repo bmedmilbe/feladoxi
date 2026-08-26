@@ -121,7 +121,6 @@ export interface Ad {
   is_featured_active: boolean;
   is_on_sale: boolean;
   discount_percentage: number;
-  expires_at: string;
   created_at: string;
   updated_at: string;
   images: AdImage[];
@@ -152,35 +151,35 @@ export interface TemporaryAdImage {
 
 export type District =
   | "AGUA_GRANDE"
-  | "CANTAGALO"
-  | "CAUE"
+  | "MEZOCHI"
   | "LEMBA"
+  | "CAUE"
   | "LOBATA"
-  | "ME_ZOCHI"
-  | "PAGUE"
+  | "CANTAGALO"
+  | "RAP"
   | "DIASPORA"
   | "UNKNOWN";
 
 export const DistrictLabels: Record<District, string> = {
   AGUA_GRANDE: "Água Grande",
-  CANTAGALO: "Cantagalo",
-  CAUE: "Caué",
-  LEMBA: "Lemba",
+  MEZOCHI: "Mé-Zóchi",
+  LEMBA: "Lembá",
+  CAUE: "Cauê",
   LOBATA: "Lobata",
-  ME_ZOCHI: "Mé-Zóchi",
-  PAGUE: "Pague",
+  CANTAGALO: "Cantagalo",
+  RAP: "Região Autonoma de Príncipe",
   DIASPORA: "Diáspora",
   UNKNOWN: "Distrito não informado",
 };
 
 export const DistrictEmojis: Record<District, string> = {
   AGUA_GRANDE: "🏙️",
-  CANTAGALO: "🌊",
-  CAUE: "🌴",
+  MEZOCHI: "🌄",
   LEMBA: "⛰️",
+  CAUE: "🌴",
   LOBATA: "🏖️",
-  ME_ZOCHI: "🌄",
-  PAGUE: "🏝️",
+  CANTAGALO: "🌊",
+  RAP: "🏝️",
   DIASPORA: "✈️",
   UNKNOWN: "",
 };

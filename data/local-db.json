@@ -24,7 +24,6 @@
       "condition": "USED",
       "status": "ACTIVE",
       "is_featured": true,
-      "expires_at": "2026-10-10T10:00:00.000Z",
       "created_at": "2026-07-20T10:00:00.000Z",
       "updated_at": "2026-07-20T10:00:00.000Z",
       "images": [
@@ -48,7 +47,6 @@
       "condition": "NEW",
       "status": "ACTIVE",
       "is_featured": false,
-      "expires_at": "2026-10-12T09:30:00.000Z",
       "created_at": "2026-07-22T09:30:00.000Z",
       "updated_at": "2026-07-22T09:30:00.000Z",
       "images": [
@@ -60,7 +58,7 @@
       "customer": {
         "id": 3,
         "mobile_number": "+2399990003",
-        "district": "ME_ZOCHI",
+        "district": "MEZOCHI",
         "whatsapp_link": "https://wa.me/2399990003",
         "created_at": "2026-07-14T14:15:00.000Z",
         "updated_at": "2026-07-14T14:15:00.000Z"
@@ -72,7 +70,6 @@
       "condition": "USED",
       "status": "ACTIVE",
       "is_featured": false,
-      "expires_at": "2026-10-14T14:15:00.000Z",
       "created_at": "2026-07-24T14:15:00.000Z",
       "updated_at": "2026-07-24T14:15:00.000Z",
       "images": [

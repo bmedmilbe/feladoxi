@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { enGB, pt } from "date-fns/locale";
 import toast from "react-hot-toast";
 import { EmptyState } from "@/components/EmptyState";
@@ -26,7 +26,7 @@ type StatusFilter = AdStatus | "ALL";
 const statusLabels: Record<AdStatus, string> = {
   ACTIVE: "Ativo",
   SUSPENDED: "Suspenso",
-  EXPIRED: "Expirado",
+  EXPIRED: "Inativo",
 };
 
 const statusStyles: Record<AdStatus, string> = {
@@ -39,7 +39,7 @@ const statusFilters: Array<{ value: StatusFilter; label: string }> = [
   { value: "ALL", label: "Todos" },
   { value: "ACTIVE", label: "Ativos" },
   { value: "SUSPENDED", label: "Suspensos" },
-  { value: "EXPIRED", label: "Expirados" },
+  { value: "EXPIRED", label: "Inativos" },
 ];
 
 function SearchIcon() {
@@ -138,7 +138,7 @@ export default function MyAdsPage() {
       total: ownedAds.length,
       active: ownedAds.filter((ad) => ad.status === "ACTIVE").length,
       suspended: ownedAds.filter((ad) => ad.status === "SUSPENDED").length,
-      expired: ownedAds.filter((ad) => ad.status === "EXPIRED").length,
+      inactive: ownedAds.filter((ad) => ad.status === "EXPIRED").length,
     }),
     [ownedAds],
   );
@@ -239,7 +239,7 @@ export default function MyAdsPage() {
             { label: tr("Total", "Total"), value: stats.total },
             { label: tr("Ativos", "Active"), value: stats.active },
             { label: tr("Suspensos", "Suspended"), value: stats.suspended },
-            { label: tr("Expirados", "Expired"), value: stats.expired },
+            { label: tr("Inativos", "Inactive"), value: stats.inactive },
           ].map((item, index) => (
             <div
               key={item.label}
@@ -293,7 +293,7 @@ export default function MyAdsPage() {
                     }`}
                   >
                     {language === "en"
-                      ? ({ ALL: "All", ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Expired" } as Record<StatusFilter, string>)[filter.value]
+                      ? ({ ALL: "All", ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Inactive" } as Record<StatusFilter, string>)[filter.value]
                       : filter.label}
                   </button>
                 ))}
@@ -381,7 +381,7 @@ export default function MyAdsPage() {
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${statusStyles[ad.status]}`}>
-                              {language === "en" ? ({ ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Expired" } as Record<AdStatus, string>)[ad.status] : statusLabels[ad.status]}
+                              {language === "en" ? ({ ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Inactive" } as Record<AdStatus, string>)[ad.status] : statusLabels[ad.status]}
                             </span>
                             {ad.category && (
                               <span className="text-xs font-semibold text-[#6d8179]">{categoryName(ad.category.slug, ad.category.name)}</span>
@@ -402,7 +402,6 @@ export default function MyAdsPage() {
                         <span>
                           {tr("Criado", "Created")} {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true, locale: language === "en" ? enGB : pt })}
                         </span>
-                        <span>{tr("Expira em", "Expires on")} {format(new Date(ad.expires_at), "dd/MM/yyyy")}</span>
                         <span>{ad.images?.length || 0} {language === "en" ? ((ad.images?.length || 0) === 1 ? "photo" : "photos") : ((ad.images?.length || 0) === 1 ? "foto" : "fotos")}</span>
                       </div>
 
