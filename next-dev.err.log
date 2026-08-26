@@ -1,11 +1,2 @@
- ⚠ Fast Refresh had to perform a full reload due to a runtime error.
- ⨯ components\SearchAutocomplete.tsx (233:43) @ language
- ⨯ ReferenceError: language is not defined
-    at SearchAutocomplete (./components/SearchAutocomplete.tsx:328:9)
-[0m [90m 231 |[39m[0m
-[0m [90m 232 |[39m     [36mreturn[39m [[33m...[39mconditions[33m,[39m [33m...[39mdistricts[33m,[39m [33m...[39mproducts[33m,[39m [33m...[39mcategories][33m.[39mslice([35m0[39m[33m,[39m [35m6[39m)[33m;[39m[0m
-[0m[31m[1m>[22m[39m[90m 233 |[39m   }[33m,[39m [categoryData[33m?[39m[33m.[39mresults[33m,[39m categoryName[33m,[39m language[33m,[39m normalizedSearch[33m,[39m productData[33m?[39m[33m.[39mresults[33m,[39m tr])[33m;[39m[0m
-[0m [90m     |[39m                                           [31m[1m^[22m[39m[0m
-[0m [90m 234 |[39m[0m
-[0m [90m 235 |[39m   useEffect(() [33m=>[39m {[0m
-[0m [90m 236 |[39m     setActiveIndex([33m-[39m[35m1[39m)[33m;[39m[0m
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\xampp\htdocs\feladoxi\.next\cache\webpack\server-development\8.pack.gz_' -> 'C:\xampp\htdocs\feladoxi\.next\cache\webpack\server-development\8.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\xampp\htdocs\feladoxi\.next\cache\webpack\client-development\11.pack.gz_' -> 'C:\xampp\htdocs\feladoxi\.next\cache\webpack\client-development\11.pack.gz'

@@ -3,6 +3,7 @@ export interface User {
   id: number;
   mobile_number: string;
   district: District;
+  district_name?: string;
   is_active: boolean;
   is_staff: boolean;
   date_joined: string;
@@ -16,6 +17,7 @@ export interface CustomerProfile {
   id: number;
   mobile_number: string;
   district: District;
+  district_name?: string;
   whatsapp_link: string;
   created_at: string;
   updated_at: string;

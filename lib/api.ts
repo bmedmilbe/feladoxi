@@ -8,6 +8,7 @@ import type {
   AdvertisingRequestStatus,
   ApiResponse,
   Category,
+  District,
   FilterState,
   TemporaryAd,
   TemporaryAdImage,
@@ -21,6 +22,72 @@ const REMOTE_API_ORIGIN = API_BASE_URL.startsWith("http")
   : "https://easyadapp-production.up.railway.app";
 
 const demoContactNumber = "+2399940219";
+
+const districtIdToCode: Record<string, District> = {
+  "1": "AGUA_GRANDE",
+  "2": "CANTAGALO",
+  "3": "CAUE",
+  "4": "LEMBA",
+  "5": "LOBATA",
+  "6": "ME_ZOCHI",
+  "7": "PAGUE",
+  "8": "DIASPORA",
+};
+
+const districtCodes = new Set<District>([
+  "AGUA_GRANDE",
+  "CANTAGALO",
+  "CAUE",
+  "LEMBA",
+  "LOBATA",
+  "ME_ZOCHI",
+  "PAGUE",
+  "DIASPORA",
+  "UNKNOWN",
+]);
+
+const districtNameToCode: Record<string, District> = {
+  AGUA_GRANDE: "AGUA_GRANDE",
+  CANTAGALO: "CANTAGALO",
+  CAUE: "CAUE",
+  LEMBA: "LEMBA",
+  LOBATA: "LOBATA",
+  ME_ZOCHI: "ME_ZOCHI",
+  PAGUE: "PAGUE",
+  PRINCIPE: "PAGUE",
+  DIASPORA: "DIASPORA",
+};
+
+function normalizeDistrict(value: unknown): District {
+  if (value && typeof value === "object") {
+    const district = value as Record<string, unknown>;
+    for (const candidate of [district.code, district.slug, district.name, district.id]) {
+      const normalized = normalizeDistrict(candidate);
+      if (normalized !== "UNKNOWN") return normalized;
+    }
+    return "UNKNOWN";
+  }
+
+  if (typeof value !== "string" && typeof value !== "number") return "UNKNOWN";
+
+  const rawValue = String(value).trim();
+  if (!rawValue) return "UNKNOWN";
+  if (districtIdToCode[rawValue]) return districtIdToCode[rawValue];
+
+  const normalizedValue = rawValue
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  if (districtCodes.has(normalizedValue as District)) {
+    return normalizedValue as District;
+  }
+
+  return districtNameToCode[normalizedValue] || "UNKNOWN";
+}
+
 const demoCategoryImages: Record<string, string> = {
   cacau: "/images/category-local-products.png",
   cafe: "/images/category-local-products.png",
@@ -199,11 +266,14 @@ function normalizeAdImage(value: unknown, index: number): AdImage | null {
 function normalizeAd(value: unknown): Ad {
   const ad = normalizeTextFields(value) as Record<string, any>;
   const customer = ad.customer && typeof ad.customer === "object" ? ad.customer : {};
-  const apiDistrict = [
+  const district = [
     customer.district,
     customer.district_code,
-  ].find((district) => typeof district === "string" && district.trim());
-  const district = apiDistrict || "UNKNOWN";
+    customer.district_name,
+    ad.district,
+  ]
+    .map(normalizeDistrict)
+    .find((candidate) => candidate !== "UNKNOWN") || "UNKNOWN";
   const images = Array.isArray(ad.images)
     ? ad.images
         .map((image: unknown, index: number) => normalizeAdImage(image, index))
@@ -631,16 +701,23 @@ export async function login(payload: {
   return response.data;
 }
 
-export async function fetchCurrentUser(): Promise<{
+type CurrentUserResponse = {
   id: number;
   mobile_number: string;
   username: string;
   district?: string;
+  district_name?: string;
   is_staff: boolean;
   is_active: boolean;
-}> {
+};
+
+export async function fetchCurrentUser(): Promise<CurrentUserResponse> {
   const response = await api.get(buildApiUrl("/auth/users/me/"));
-  return normalizeTextFields(response.data);
+  const user = normalizeTextFields(response.data) as CurrentUserResponse;
+  return {
+    ...user,
+    district: normalizeDistrict(user.district),
+  };
 }
 
 export async function publishTemporaryAd(tempAdId: string): Promise<Ad> {
@@ -811,7 +888,14 @@ export async function fetchAdminUsers(
   const response = await api.get(
     buildAdminListUrl("/marketplace/admin/users/", page, search),
   );
-  return normalizeApiResponse<AdminUser>(response.data);
+  const users = normalizeApiResponse<AdminUser>(response.data);
+  return {
+    ...users,
+    results: users.results.map((user) => ({
+      ...user,
+      district: normalizeDistrict(user.district),
+    })),
+  };
 }
 
 export async function updateAdminUser(
@@ -822,7 +906,11 @@ export async function updateAdminUser(
     buildApiUrl(`/marketplace/admin/users/${id}/`),
     payload,
   );
-  return normalizeTextFields(response.data);
+  const user = normalizeTextFields(response.data) as AdminUser;
+  return {
+    ...user,
+    district: normalizeDistrict(user.district),
+  };
 }
 
 export function getApiErrorMessage(error: unknown): string | null {
